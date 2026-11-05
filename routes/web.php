@@ -9,8 +9,31 @@ use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\CashierController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('admin.index');
 });
+Route::get('cek-harga', function () {
+    return view('admin.cek-harga');
+});
+Route::get('analisis-harga', function () {
+    return view('admin.analisis-harga');
+});
+Route::get('analisis-stok-penjualan', function () {
+    return view('admin.analisis-stok-penjualan');
+});
+Route::get('catatan-transaksi', function () {
+    return view('admin.catatan-transaksi');
+});
+Route::get('laporan-keuangan', function () {
+    return view('admin.laporan-keuangan');
+});
+Route::get('produk-stok', function () {
+    return view('admin.produk-stok');
+});
+Route::get('rekomendasi-diskon', function () {
+    return view('admin.rekomendasi-diskon');
+});
+
+
 
 Route::middleware(['auth'])->group(function () {
     
