@@ -1,151 +1,152 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Analisis harga · Mantou</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.4"></script>
-<!-- Shared theme: identical in both pages so they stay visually integrated -->
-<style type="text/tailwindcss">
-  @theme {
-    --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-    --color-canvas: #f6f5ef;
-    --color-surface: #fffefa;
-    --color-line: #e1e5dc;
-    --color-tint: #e8f0e8;
-    --color-brand: #245c45;
-    --color-brand-dark: #203f32;
-    --color-brand-soft: #7fa68a;
-    --color-ink: #1f3a2d;
-    --color-muted: #6b7a70;
-    --color-warn-bg: #fbf0d9;
-    --color-warn: #9a6a1f;
-  }
-</style>
-</head>
-<body class="min-h-screen bg-canvas font-sans text-ink antialiased">
-<div class="flex min-h-screen">
+<x-layouts.app title="Analisis harga" active="analisis-harga">
+  <x-layouts.page-header title="Analisis harga" subtitle="Susun harga jual dari biaya dan target laba yang sesuai untuk warung Anda.">
+    <x-ui.badge>Keputusan pemilik</x-ui.badge>
+  </x-layouts.page-header>
 
-<aside class="sticky top-0 hidden h-screen w-[236px] shrink-0 flex-col border-r border-line bg-surface px-4 pb-5 pt-7 lg:flex">
-  <a href="/" class="flex items-center gap-2.5 px-1">
-    <span class="grid size-9 place-items-center rounded-lg bg-brand text-white"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9l1.5-5h13L20 9"/><path d="M4 9v11h16V9"/><path d="M4 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3"/><path d="M10 20v-5h4v5"/></svg></span>
-    <span class="text-[22px] font-extrabold tracking-tight text-ink">Mantou</span>
-  </a>
-  <button type="button" class="mt-6 flex w-full items-start justify-between rounded-xl border border-line bg-canvas px-3.5 py-3 text-left">
-    <span><span class="block text-[13px] font-bold text-ink">Warung Bu Ratna</span><span class="mt-1.5 block text-[11px] text-muted">Sukamaju, Bandung</span></span>
-    <span class="mt-0.5 text-muted"><svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 10l4-4 4 4M8 14l4 4 4-4"/></svg></span>
-  </button>
-  <nav class="mt-7 flex flex-1 flex-col gap-1 overflow-y-auto" aria-label="Menu utama">
-    <p class="mb-1 px-1 text-[10px] font-bold uppercase tracking-wider text-muted">Kelola warung</p>
-    <a href="/" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-muted transition hover:bg-tint/60 hover:text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></svg><span>Ringkasan</span></a>
-    <a href="/cek-harga" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-muted transition hover:bg-tint/60 hover:text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a1 1 0 011-1h2M21 7V5a1 1 0 00-1-1h-2M3 17v2a1 1 0 001 1h2M21 17v2a1 1 0 01-1 1h-2"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></svg><span>Cek harga</span></a>
-    <a href="/produk-stok" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-muted transition hover:bg-tint/60 hover:text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>Produk &amp; stok</span></a>
-    <a href="/catatan-transaksi" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-muted transition hover:bg-tint/60 hover:text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6a2 2 0 012-2h8l4 4v11a1 1 0 01-1 1H7a2 2 0 01-2-2V6z"/><path d="M9 13h6M9 17h4"/></svg><span>Catatan transaksi</span></a>
-    <a href="/laporan-keuangan" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-muted transition hover:bg-tint/60 hover:text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M5 16l4-4 3 3 6-7"/></svg><span>Laporan keuangan</span></a>
-    <p class="mb-1 mt-5 px-1 text-[10px] font-bold uppercase tracking-wider text-muted">Wawasan usaha</p>
-    <a href="/analisis-harga" aria-current="page" class="relative flex items-center gap-3 rounded-lg bg-tint px-3 py-2.5 text-[13px] font-bold text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 8h7M8.5 12h2M13.5 12h2M8.5 16h2M13.5 16h2"/></svg><span>Analisis harga</span><span class="absolute right-2.5 h-4 w-[3px] rounded-full bg-brand"></span></a>
-    <a href="/analisis-stok-penjualan" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-muted transition hover:bg-tint/60 hover:text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16M8 20v-8M12 20V6M16 20v-5"/></svg><span>Analisis stok &amp; penjualan</span></a>
-    <a href="/rekomendasi-diskon" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-muted transition hover:bg-tint/60 hover:text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9 15l6-6"/><circle cx="9.5" cy="9.5" r=".8"/><circle cx="14.5" cy="14.5" r=".8"/></svg><span>Rekomendasi diskon</span></a>
-  </nav>
-  <div class="mb-4 rounded-xl bg-tint p-4">
-    <span class="text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c0-3.5-2.5-5.5-6-5.5 0 3.5 2.5 5.5 6 5.5z"/><path d="M12 15c0-3 2-5 5.5-5 0 3-2 5-5.5 5z"/></svg></span>
-    <p class="mt-2 text-[13px] font-bold text-ink">Usaha kecil, lebih tertata.</p>
-    <p class="mt-1.5 text-[11px] leading-relaxed text-muted">Mulai dari catatan yang rapi, setiap hari.</p>
-    <a href="#" class="mt-3 inline-flex items-center gap-1.5 text-[12px] font-bold text-brand hover:underline">Panduan penggunaan <svg class="size-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></svg></a>
+  <x-ui.card padding="p-5" class="mt-6 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-5">
+      <span class="grid size-12 place-items-center rounded-xl bg-tint text-brand"><x-ui.icon name="box" /></span>
+      <div>
+        <label for="pSel" class="text-[11px] text-muted">Produk yang dianalisis</label>
+        <select id="pSel" class="mt-0.5 block max-w-[300px] rounded-lg border border-line bg-surface px-2 py-1.5 text-[16px] font-extrabold outline-none focus:border-brand"></select>
+        <p id="pMeta" class="mt-1 text-[11px] text-muted"></p>
+      </div>
+    </div>
+    <div class="flex items-center gap-5">
+      <div class="text-right">
+        <p class="text-[11px] text-muted">Harga jual saat ini</p>
+        <p id="curPrice" class="text-[22px] font-extrabold"></p>
+      </div>
+      <x-forms.button id="pLink" href="/produk-stok">Lihat di Produk &amp; stok</x-forms.button>
+    </div>
+  </x-ui.card>
+
+  <div id="empty" class="mt-5 hidden rounded-xl bg-line/50 px-5 py-8 text-center text-[13px] text-muted">
+    Belum ada produk. Tambahkan lewat <a class="font-semibold text-brand underline" href="/produk-stok">Produk &amp; stok</a>.
   </div>
-  <div class="flex items-center gap-3 px-1">
-    <span class="grid size-9 place-items-center rounded-full bg-line text-[12px] font-bold text-ink">BR</span>
-    <span class="flex-1"><span class="block text-[13px] font-bold text-ink">Bu Ratna</span><span class="block text-[11px] text-muted">Pemilik warung</span></span>
-    <a href="#" aria-label="Keluar" class="text-muted hover:text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H5a1 1 0 00-1 1v14a1 1 0 001 1h4M15 8l4 4-4 4M19 12H9"/></svg></a>
+
+  <div id="body" class="mt-5 grid items-start gap-5 xl:grid-cols-2">
+    <x-ui.card radius="2xl" title="Dasar perhitungan" subtitle="Sesuaikan biaya dan target laba per unit produk. Hasil dihitung langsung." title-size="text-[20px]">
+      <div class="mt-5 flex flex-col gap-5">
+        <x-forms.input id="iCost" type="number" prefix="Rp" min="0" step="1" inputmode="numeric" hint="Diambil dari data produk; dapat disesuaikan untuk simulasi.">
+          <x-slot:label>Biaya perolehan per <span class="unit"></span></x-slot:label>
+        </x-forms.input>
+
+        <x-forms.input id="iExtra" type="number" prefix="Rp" min="0" step="1" inputmode="numeric" hint-id="extraHint">
+          <x-slot:label>Biaya tambahan per <span class="unit"></span></x-slot:label>
+        </x-forms.input>
+
+        <div>
+          <label for="iMk" class="text-[12px] font-bold">Target laba (markup)</label>
+          <div class="mt-2 flex flex-wrap items-center gap-4">
+            <div class="flex w-44 items-center justify-between rounded-lg border border-line px-3.5 py-3 text-[14px] focus-within:border-brand">
+              <input id="iMk" type="number" min="0" max="500" step="1" inputmode="numeric" class="w-20 min-w-0 flex-1 bg-transparent outline-none">
+              <span class="text-muted">%</span>
+            </div>
+            <div>
+              <x-ui.badge tone="brand" class="inline-block">Markup, bukan margin</x-ui.badge>
+              <p id="mkHint" class="mt-1.5 text-[11px] text-muted"></p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <x-forms.select id="iRound" label="Pembulatan harga ke atas" size="md" class="w-44" :options="['1' => 'Tanpa pembulatan', '100' => 'Rp100', '500' => 'Rp500', '1000' => 'Rp1.000']" selected="100" />
+        </div>
+      </div>
+      <div class="mt-6 flex items-center justify-between">
+        <x-forms.button id="btnReset" variant="link">Atur ulang</x-forms.button>
+      </div>
+    </x-ui.card>
+
+    <x-ui.card tone="tint" radius="2xl" title="Rekomendasi harga jual" title-size="text-[16px]">
+      <p id="rec" class="mt-6 text-[56px] font-extrabold leading-none tracking-tight text-brand"></p>
+      <p id="recDelta" class="mt-4 text-[12px] text-brand"></p>
+      <div class="mt-5 border-t border-brand-soft/40 pt-4">
+        <div class="flex items-center justify-between py-1.5 text-[13px]"><span class="text-muted">Biaya perolehan</span><span id="bCost" class="font-bold"></span></div>
+        <div class="flex items-center justify-between py-1.5 text-[13px]"><span class="text-muted">Biaya tambahan</span><span id="bExtra" class="font-bold"></span></div>
+        <div class="flex items-center justify-between py-1.5 text-[13px]"><span class="font-bold">Total biaya per unit</span><span id="bTotal" class="font-bold"></span></div>
+        <div class="flex items-center justify-between py-1.5 text-[13px]"><span id="bMkLbl" class="text-muted"></span><span id="bMk" class="font-bold"></span></div>
+      </div>
+      <p id="bSum" class="mt-4 rounded-lg bg-surface px-4 py-3.5 text-center text-[12px] font-bold text-brand"></p>
+      <p class="mt-4 text-[11px] text-muted">Simulasi belum mengubah harga tersimpan. Tinjau sebelum menetapkan harga baru.</p>
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <x-forms.button id="btnApply" variant="primary" size="lg" />
+        <a id="discLink" href="/rekomendasi-diskon" class="text-[12px] font-bold text-brand hover:underline">Tinjau diskon stok lambat →</a>
+      </div>
+    </x-ui.card>
   </div>
-</aside>
-<div class="min-w-0 flex-1">
-<header class="flex h-[65px] items-center justify-between border-b border-line bg-surface px-5 sm:px-8">
-  <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-[12px] text-muted">
-    <a href="/" class="flex items-center gap-2 hover:text-brand"><svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9l1.5-5h13L20 9"/><path d="M4 9v11h16V9"/><path d="M4 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3"/><path d="M10 20v-5h4v5"/></svg>Ruang usaha</a>
-    <span>/</span><span class="font-bold text-ink">Analisis harga</span>
-  </nav>
-  <div class="flex items-center gap-4 text-[12px] text-muted">
-    <span class="hidden sm:inline">Minggu, 7 Juni 2026</span>
-    <button type="button" aria-label="Notifikasi" class="hover:text-brand"><svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 1112 0v5l1.5 2h-15L6 16z"/><path d="M10 21h4"/></svg></button>
-  </div>
-</header>
-<div class="flex flex-wrap items-start justify-between gap-4"><div><h1 class="text-[32px] font-extrabold tracking-tight">Analisis harga</h1><p class="mt-2 text-[13px] text-muted">Susun harga jual dari biaya dan target laba yang sesuai untuk warung Anda.</p></div><span class="inline-block rounded-md bg-line/70 px-2.5 py-1 text-[11px] font-bold text-muted">Keputusan pemilik</span></div>
-<section class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface p-5"><div class="flex items-center gap-5"><span class="grid size-12 place-items-center rounded-xl bg-tint text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg></span><div><label for="pSel" class="text-[11px] text-muted">Produk yang dianalisis</label><select id="pSel" class="mt-0.5 block max-w-[300px] rounded-lg border border-line bg-surface px-2 py-1.5 text-[16px] font-extrabold outline-none focus:border-brand"></select><p id="pMeta" class="mt-1 text-[11px] text-muted"></p></div></div><div class="flex items-center gap-5"><div class="text-right"><p class="text-[11px] text-muted">Harga jual saat ini</p><p id="curPrice" class="text-[22px] font-extrabold"></p></div><a id="pLink" href="/produk-stok" class="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2.5 text-[13px] font-bold transition hover:border-brand">Lihat di Produk &amp; stok</a></div></section>
-<div id="empty" class="mt-5 hidden rounded-xl bg-line/50 px-5 py-8 text-center text-[13px] text-muted">Belum ada produk. Tambahkan lewat <a class="font-semibold text-brand underline" href="/produk-stok">Produk &amp; stok</a>.</div>
-<div id="body" class="mt-5 grid items-start gap-5 xl:grid-cols-2"><section class="rounded-2xl border border-line bg-surface p-6"><h2 class="text-[20px] font-extrabold">Dasar perhitungan</h2><p class="mt-1 text-[12px] text-muted">Sesuaikan biaya dan target laba per unit produk. Hasil dihitung langsung.</p><div class="mt-5 flex flex-col gap-5">
-<div><label for="iCost" class="text-[12px] font-bold">Biaya perolehan per <span class="unit"></span></label><div class="mt-2 flex items-center gap-3 rounded-lg border border-line bg-surface px-3.5 py-3 text-[14px] focus-within:border-brand"><span class="text-[13px] text-muted">Rp</span><input id="iCost" type="number" min="0" step="1" inputmode="numeric" class="min-w-0 flex-1 bg-transparent outline-none"></div><p class="mt-2 text-[11px] text-muted">Diambil dari data produk; dapat disesuaikan untuk simulasi.</p></div>
-<div><label for="iExtra" class="text-[12px] font-bold">Biaya tambahan per <span class="unit"></span></label><div class="mt-2 flex items-center gap-3 rounded-lg border border-line bg-surface px-3.5 py-3 text-[14px] focus-within:border-brand"><span class="text-[13px] text-muted">Rp</span><input id="iExtra" type="number" min="0" step="1" inputmode="numeric" class="min-w-0 flex-1 bg-transparent outline-none"></div><p id="extraHint" class="mt-2 text-[11px] text-muted"></p></div>
-<div><label for="iMk" class="text-[12px] font-bold">Target laba (markup)</label><div class="mt-2 flex flex-wrap items-center gap-4"><div class="flex w-44 items-center justify-between rounded-lg border border-line px-3.5 py-3 text-[14px] focus-within:border-brand"><input id="iMk" type="number" min="0" max="500" step="1" inputmode="numeric" class="min-w-0 flex-1 bg-transparent outline-none w-20"><span class="text-muted">%</span></div><div><span class="inline-block rounded-md bg-tint px-2.5 py-1 text-[11px] font-bold text-brand">Markup, bukan margin</span><p id="mkHint" class="mt-1.5 text-[11px] text-muted"></p></div></div></div>
-<div><label for="iRound" class="text-[12px] font-bold">Pembulatan harga ke atas</label><select id="iRound" class="mt-2 w-44 rounded-lg border border-line bg-surface px-3.5 py-3 text-[14px] outline-none focus:border-brand"><option value="1">Tanpa pembulatan</option><option value="100" selected>Rp100</option><option value="500">Rp500</option><option value="1000">Rp1.000</option></select></div></div>
-<div class="mt-6 flex items-center justify-between"><button type="button" id="btnReset" class="text-[13px] font-bold text-brand">Atur ulang</button></div></section>
-<section class="rounded-2xl border border-brand-soft/50 bg-tint p-6"><div class="flex items-center justify-between"><h2 class="text-[16px] font-extrabold">Rekomendasi harga jual</h2></div><p id="rec" class="mt-6 text-[56px] font-extrabold leading-none tracking-tight text-brand"></p><p id="recDelta" class="mt-4 text-[12px] text-brand"></p><div class="mt-5 border-t border-brand-soft/40 pt-4"><div class="flex items-center justify-between py-1.5 text-[13px]"><span class="text-muted">Biaya perolehan</span><span id="bCost" class="font-bold"></span></div><div class="flex items-center justify-between py-1.5 text-[13px]"><span class="text-muted">Biaya tambahan</span><span id="bExtra" class="font-bold"></span></div><div class="flex items-center justify-between py-1.5 text-[13px]"><span class="font-bold">Total biaya per unit</span><span id="bTotal" class="font-bold"></span></div><div class="flex items-center justify-between py-1.5 text-[13px]"><span id="bMkLbl" class="text-muted"></span><span id="bMk" class="font-bold"></span></div></div><p id="bSum" class="mt-4 rounded-lg bg-surface px-4 py-3.5 text-center text-[12px] font-bold text-brand"></p><p class="mt-4 text-[11px] text-muted">Simulasi belum mengubah harga tersimpan. Tinjau sebelum menetapkan harga baru.</p><div class="mt-4 flex flex-wrap items-center gap-3"><button type="button" id="btnApply" class="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-3 text-[13px] font-bold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-40"></button><a id="discLink" href="/rekomendasi-diskon" class="text-[12px] font-bold text-brand hover:underline">Tinjau diskon stok lambat →</a></div></section></div>
-<section id="cmp" class="mt-5 rounded-xl border border-line bg-surface p-6"><h2 class="text-[18px] font-extrabold">Apa bedanya dengan harga sekarang?</h2><div class="mt-4 grid gap-4 md:grid-cols-2"><div class="rounded-lg bg-canvas px-4 py-3.5"><p id="cmpA" class="text-[11px] text-muted"></p><div class="mt-2 flex items-center justify-between text-[13px]"><span>Estimasi sisa setelah seluruh biaya</span><b id="cmpAv" class="text-[18px]"></b></div></div><div class="rounded-lg bg-tint px-4 py-3.5"><p id="cmpB" class="text-[11px] text-muted"></p><div class="mt-2 flex items-center justify-between text-[13px]"><span>Estimasi sisa setelah seluruh biaya</span><b id="cmpBv" class="text-[18px]"></b></div></div></div></section>
-<div class="mt-5 flex items-center gap-3 rounded-xl bg-line/50 px-5 py-4 text-[12px] text-muted">Rekomendasi memakai biaya dan target laba Anda, bukan harga pasar langsung. Pemilik tetap menentukan harga akhir; pertimbangkan juga kondisi pelanggan dan warung.</div>
-<div id="toast" class="pointer-events-none fixed bottom-24 left-1/2 z-[60] -translate-x-1/2 rounded-lg bg-ink px-4 py-2.5 text-[13px] font-semibold text-white opacity-0 transition-opacity lg:bottom-8"></div>
-</div>
-</div>
-<nav id="bottomNav" class="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-surface/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur [scrollbar-width:none] lg:hidden" aria-label="Menu"><a href="/" class="flex min-w-[68px] shrink-0 flex-col items-center gap-1 px-1 pb-1 pt-2 text-[10px] font-medium text-muted"><span class="grid h-7 w-12 place-items-center rounded-full transition text-muted"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></svg></span><span class="whitespace-nowrap">Ringkasan</span></a><a href="/cek-harga" class="flex min-w-[68px] shrink-0 flex-col items-center gap-1 px-1 pb-1 pt-2 text-[10px] font-medium text-muted"><span class="grid h-7 w-12 place-items-center rounded-full transition text-muted"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a1 1 0 011-1h2M21 7V5a1 1 0 00-1-1h-2M3 17v2a1 1 0 001 1h2M21 17v2a1 1 0 01-1 1h-2"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></svg></span><span class="whitespace-nowrap">Cek harga</span></a><a href="/produk-stok" class="flex min-w-[68px] shrink-0 flex-col items-center gap-1 px-1 pb-1 pt-2 text-[10px] font-medium text-muted"><span class="grid h-7 w-12 place-items-center rounded-full transition text-muted"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg></span><span class="whitespace-nowrap">Produk</span></a><a href="/catatan-transaksi" class="flex min-w-[68px] shrink-0 flex-col items-center gap-1 px-1 pb-1 pt-2 text-[10px] font-medium text-muted"><span class="grid h-7 w-12 place-items-center rounded-full transition text-muted"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6a2 2 0 012-2h8l4 4v11a1 1 0 01-1 1H7a2 2 0 01-2-2V6z"/><path d="M9 13h6M9 17h4"/></svg></span><span class="whitespace-nowrap">Transaksi</span></a><a href="/laporan-keuangan" class="flex min-w-[68px] shrink-0 flex-col items-center gap-1 px-1 pb-1 pt-2 text-[10px] font-medium text-muted"><span class="grid h-7 w-12 place-items-center rounded-full transition text-muted"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M5 16l4-4 3 3 6-7"/></svg></span><span class="whitespace-nowrap">Laporan</span></a><a href="/analisis-harga" aria-current="page" class="flex min-w-[68px] shrink-0 flex-col items-center gap-1 px-1 pb-1 pt-2 text-[10px] font-bold text-brand"><span class="grid h-7 w-12 place-items-center rounded-full transition bg-tint text-brand"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 8h7M8.5 12h2M13.5 12h2M8.5 16h2M13.5 16h2"/></svg></span><span class="whitespace-nowrap">Harga</span></a><a href="/analisis-stok-penjualan" class="flex min-w-[68px] shrink-0 flex-col items-center gap-1 px-1 pb-1 pt-2 text-[10px] font-medium text-muted"><span class="grid h-7 w-12 place-items-center rounded-full transition text-muted"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16M8 20v-8M12 20V6M16 20v-5"/></svg></span><span class="whitespace-nowrap">Penjualan</span></a><a href="/rekomendasi-diskon" class="flex min-w-[68px] shrink-0 flex-col items-center gap-1 px-1 pb-1 pt-2 text-[10px] font-medium text-muted"><span class="grid h-7 w-12 place-items-center rounded-full transition text-muted"><svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9 15l6-6"/><circle cx="9.5" cy="9.5" r=".8"/><circle cx="14.5" cy="14.5" r=".8"/></svg></span><span class="whitespace-nowrap">Diskon</span></a></nav>
-<script>(function(){var n=document.getElementById("bottomNav");if(!n)return;var a=n.querySelector("[aria-current]");if(a)n.scrollLeft=a.offsetLeft-(n.clientWidth-a.offsetWidth)/2;})();</script>
-<script src="../../resources/js/mantou-store.js"></script>
+
+  <x-ui.card id="cmp" class="mt-5" title="Apa bedanya dengan harga sekarang?">
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <div class="rounded-lg bg-canvas px-4 py-3.5">
+        <p id="cmpA" class="text-[11px] text-muted"></p>
+        <div class="mt-2 flex items-center justify-between text-[13px]"><span>Estimasi sisa setelah seluruh biaya</span><b id="cmpAv" class="text-[18px]"></b></div>
+      </div>
+      <div class="rounded-lg bg-tint px-4 py-3.5">
+        <p id="cmpB" class="text-[11px] text-muted"></p>
+        <div class="mt-2 flex items-center justify-between text-[13px]"><span>Estimasi sisa setelah seluruh biaya</span><b id="cmpBv" class="text-[18px]"></b></div>
+      </div>
+    </div>
+  </x-ui.card>
+
+  <x-ui.alert variant="note" class="mt-5">Rekomendasi memakai biaya dan target laba Anda, bukan harga pasar langsung. Pemilik tetap menentukan harga akhir; pertimbangkan juga kondisi pelanggan dan warung.</x-ui.alert>
+
+@push('scripts')
 <script>
-(function () {
-  var M = window.Mantou, rp = M.fmt.rupiah;
-  var $ = function (id) { return document.getElementById(id); };
-  var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-  var pct1 = function (n) { return (Math.round(n * 10) / 10).toString().replace('.', ','); };
-  var tt; function toast(m) { var t = $('toast'); t.textContent = m; t.style.opacity = 1; clearTimeout(tt); tt = setTimeout(function () { t.style.opacity = 0; }, 3000); }
-  var qs = new URLSearchParams(location.search);
-  var ICON = function (d) { return '<svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
+  (function () {
+    var M = window.Mantou, rp = M.fmt.rupiah;
+    var $ = function (id) { return document.getElementById(id); };
+    var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+    var pct1 = function (n) { return (Math.round(n * 10) / 10).toString().replace('.', ','); };
+    var qs = new URLSearchParams(location.search);
+    var ICON = function (d) { return '<svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
 
-  var pid = qs.get('pid') || '', hint = M.extraCostHint();
-  function prod() { var s = M.get(); return M.find(s.products, pid) || s.products[0] || null; }
-  function num(id) { var v = Number($(id).value); return v >= 0 ? v : 0; }
-  function loadProduct(keep) {
-    var p = prod(); $('body').classList.toggle('hidden', !p); $('cmp').classList.toggle('hidden', !p); $('empty').classList.toggle('hidden', !!p);
-    if (!p) { $('pSel').innerHTML = ''; $('pMeta').textContent = ''; $('curPrice').textContent = '—'; return; }
-    pid = p.id;
-    $('pSel').innerHTML = M.get().products.map(function (x) { return '<option value="' + x.id + '"' + (x.id === pid ? ' selected' : '') + '>' + esc(x.name) + '</option>'; }).join('');
-    $('pMeta').textContent = (p.barcode ? p.barcode + ' · ' : '') + p.category + ' · stok ' + p.stock + ' ' + p.unit + (p.promo ? ' · diskon ' + p.promo.pct + ' persen berjalan' : '');
-    $('curPrice').textContent = rp(p.price); $('pLink').href = '/produk-stok?cari=' + encodeURIComponent(p.barcode || p.name);
-    $('discLink').href = '/rekomendasi-diskon?pid=' + p.id;
-    Array.prototype.forEach.call(document.querySelectorAll('.unit'), function (e) { e.textContent = p.unit; });
-    if (!keep) { $('iCost').value = p.cost; $('iExtra').value = hint.perUnit; $('iMk').value = 25; }
-    $('extraHint').textContent = hint.units ? 'Saran dari catatan: pengeluaran ongkos angkut & kemasan 7 hari terakhir ' + rp(hint.total) + ' ÷ ' + hint.units + ' unit terjual = ' + rp(hint.perUnit) + ' per unit. Boleh diubah.' : 'Isi ongkos angkut, kemasan, atau biaya lain yang dibebankan per unit.';
-    calc();
-  }
-  function calc() {
-    var p = prod(); if (!p) return;
-    var cost = num('iCost'), extra = num('iExtra'), mk = num('iMk'), step = +$('iRound').value, total = cost + extra, profit = total * mk / 100;
-    var rec = Math.ceil((total + profit) / step - 1e-9) * step, d = rec - p.price;
-    $('mkHint').textContent = mk + '% dari total biaya ' + rp(total) + ', bukan dari harga jual.';
-    $('rec').textContent = rp(rec);
-    $('recDelta').textContent = 'per ' + p.unit + ' · ' + (d === 0 ? 'sama dengan harga saat ini' : (d > 0 ? '+' : '–') + rp(Math.abs(d)).replace('–', '') + ' (' + (d > 0 ? '+' : '–') + pct1(Math.abs(d) / p.price * 100) + '%) dari harga saat ini');
-    $('bCost').textContent = rp(cost); $('bExtra').textContent = rp(extra); $('bTotal').textContent = rp(total);
-    $('bMkLbl').textContent = 'Target laba · ' + mk + '% × ' + rp(total); $('bMk').textContent = rp(profit);
-    $('bSum').textContent = rp(total) + ' + ' + rp(profit) + ' = ' + rp(total + profit) + (rec !== Math.round(total + profit) ? ' → dibulatkan ' + rp(rec) : '');
-    $('cmpA').textContent = 'Harga saat ini · ' + rp(p.price); $('cmpAv').textContent = rp(p.price - total);
-    $('cmpB').textContent = 'Harga rekomendasi · ' + rp(rec); $('cmpBv').textContent = rp(rec - total);
-    $('cmpAv').className = 'text-[18px] ' + (p.price - total < 0 ? 'text-warn' : '');
-    $('btnApply').innerHTML = '<svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Terapkan harga ' + rp(rec);
-    $('btnApply').disabled = !(rec >= 1 && rec !== p.price);
-  }
-  ['iCost', 'iExtra', 'iMk'].forEach(function (id) { $(id).addEventListener('input', calc); });
-  $('iRound').addEventListener('change', calc);
-  $('pSel').addEventListener('change', function () { pid = this.value; hint = M.extraCostHint(); loadProduct(false); });
-  $('btnReset').onclick = function () { hint = M.extraCostHint(); loadProduct(false); };
-  $('btnApply').onclick = function () {
-    var p = prod(), rec = $('rec').textContent;
-    if (!confirm('Tetapkan harga jual ' + p.name + ' dari ' + rp(p.price) + ' menjadi ' + rec + '? Harga di Cek harga dan Produk & stok ikut berubah.')) return;
-    var r = M.applyPrice(p.id, Number(rec.replace(/\D/g, '')), 0);
-    if (!r.ok) { alert(r.error); return; } toast('Harga ' + p.name + ' sekarang ' + rec); loadProduct(true);
-  };
-  M.onChange(function () { loadProduct(true); });
-  loadProduct(false);
-})();
+    var pid = qs.get('pid') || '', hint = M.extraCostHint();
+    function prod() { var s = M.get(); return M.find(s.products, pid) || s.products[0] || null; }
+    function num(id) { var v = Number($(id).value); return v >= 0 ? v : 0; }
+    function loadProduct(keep) {
+      var p = prod(); $('body').classList.toggle('hidden', !p); $('cmp').classList.toggle('hidden', !p); $('empty').classList.toggle('hidden', !!p);
+      if (!p) { $('pSel').innerHTML = ''; $('pMeta').textContent = ''; $('curPrice').textContent = '—'; return; }
+      pid = p.id;
+      $('pSel').innerHTML = M.get().products.map(function (x) { return '<option value="' + x.id + '"' + (x.id === pid ? ' selected' : '') + '>' + esc(x.name) + '</option>'; }).join('');
+      $('pMeta').textContent = (p.barcode ? p.barcode + ' · ' : '') + p.category + ' · stok ' + p.stock + ' ' + p.unit + (p.promo ? ' · diskon ' + p.promo.pct + ' persen berjalan' : '');
+      $('curPrice').textContent = rp(p.price); $('pLink').href = '/produk-stok?cari=' + encodeURIComponent(p.barcode || p.name);
+      $('discLink').href = '/rekomendasi-diskon?pid=' + p.id;
+      Array.prototype.forEach.call(document.querySelectorAll('.unit'), function (e) { e.textContent = p.unit; });
+      if (!keep) { $('iCost').value = p.cost; $('iExtra').value = hint.perUnit; $('iMk').value = 25; }
+      $('extraHint').textContent = hint.units ? 'Saran dari catatan: pengeluaran ongkos angkut & kemasan 7 hari terakhir ' + rp(hint.total) + ' ÷ ' + hint.units + ' unit terjual = ' + rp(hint.perUnit) + ' per unit. Boleh diubah.' : 'Isi ongkos angkut, kemasan, atau biaya lain yang dibebankan per unit.';
+      calc();
+    }
+    function calc() {
+      var p = prod(); if (!p) return;
+      var cost = num('iCost'), extra = num('iExtra'), mk = num('iMk'), step = +$('iRound').value, total = cost + extra, profit = total * mk / 100;
+      var rec = Math.ceil((total + profit) / step - 1e-9) * step, d = rec - p.price;
+      $('mkHint').textContent = mk + '% dari total biaya ' + rp(total) + ', bukan dari harga jual.';
+      $('rec').textContent = rp(rec);
+      $('recDelta').textContent = 'per ' + p.unit + ' · ' + (d === 0 ? 'sama dengan harga saat ini' : (d > 0 ? '+' : '–') + rp(Math.abs(d)).replace('–', '') + ' (' + (d > 0 ? '+' : '–') + pct1(Math.abs(d) / p.price * 100) + '%) dari harga saat ini');
+      $('bCost').textContent = rp(cost); $('bExtra').textContent = rp(extra); $('bTotal').textContent = rp(total);
+      $('bMkLbl').textContent = 'Target laba · ' + mk + '% × ' + rp(total); $('bMk').textContent = rp(profit);
+      $('bSum').textContent = rp(total) + ' + ' + rp(profit) + ' = ' + rp(total + profit) + (rec !== Math.round(total + profit) ? ' → dibulatkan ' + rp(rec) : '');
+      $('cmpA').textContent = 'Harga saat ini · ' + rp(p.price); $('cmpAv').textContent = rp(p.price - total);
+      $('cmpB').textContent = 'Harga rekomendasi · ' + rp(rec); $('cmpBv').textContent = rp(rec - total);
+      $('cmpAv').className = 'text-[18px] ' + (p.price - total < 0 ? 'text-warn' : '');
+      $('btnApply').innerHTML = '<svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Terapkan harga ' + rp(rec);
+      $('btnApply').disabled = !(rec >= 1 && rec !== p.price);
+    }
+    ['iCost', 'iExtra', 'iMk'].forEach(function (id) { $(id).addEventListener('input', calc); });
+    $('iRound').addEventListener('change', calc);
+    $('pSel').addEventListener('change', function () { pid = this.value; hint = M.extraCostHint(); loadProduct(false); });
+    $('btnReset').onclick = function () { hint = M.extraCostHint(); loadProduct(false); };
+    $('btnApply').onclick = function () {
+      var p = prod(), rec = $('rec').textContent;
+      if (!confirm('Tetapkan harga jual ' + p.name + ' dari ' + rp(p.price) + ' menjadi ' + rec + '? Harga di Cek harga dan Produk & stok ikut berubah.')) return;
+      var r = M.applyPrice(p.id, Number(rec.replace(/\D/g, '')), 0);
+      if (!r.ok) { alert(r.error); return; } toast('Harga ' + p.name + ' sekarang ' + rec); loadProduct(true);
+    };
+    M.onChange(function () { loadProduct(true); });
+    loadProduct(false);
+  })();
 </script>
-</body>
-</html>
+@endpush
+</x-layouts.app>
