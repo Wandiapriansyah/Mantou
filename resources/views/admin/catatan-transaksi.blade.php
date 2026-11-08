@@ -4,8 +4,8 @@
   </x-layouts.page-header>
 
   <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-    <div class="inline-flex rounded-xl bg-tint p-1 text-[13px] font-bold text-brand" role="tablist" aria-label="Jenis catatan">
-      <button type="button" role="tab" id="tabSale" aria-selected="true" class="inline-flex items-center gap-2 rounded-lg bg-surface px-4 py-2 shadow-sm">
+    <div class="inline-flex rounded-xl bg-tint p-1 text-[13px] font-bold text-brand-dark" role="tablist" aria-label="Jenis catatan">
+      <button type="button" role="tab" id="tabSale" aria-selected="true" class="inline-flex items-center gap-2 rounded-lg bg-surface px-4 py-2 text-ink">
         <x-ui.icon name="document" size="size-[18px]" />Penjualan
       </button>
       <button type="button" role="tab" id="tabExp" aria-selected="false" class="inline-flex items-center gap-2 rounded-lg px-4 py-2">
@@ -25,10 +25,10 @@
           <x-forms.input id="saleTs" type="datetime-local" label="Tanggal & waktu penjualan" />
           <div>
             <label class="text-[12px] font-bold">Dicatat oleh</label>
-            <div class="mt-2 flex items-center rounded-lg border border-line bg-canvas px-3.5 py-3 text-[14px] text-muted">Bu Ratna · Pemilik</div>
+            <div class="mt-2 flex items-center rounded-lg border border-line bg-surface px-3.5 py-3 text-[14px] text-muted">Bu Ratna · Pemilik</div>
           </div>
         </div>
-        <div class="mt-6 hidden grid-cols-[1fr_88px_90px_130px] gap-x-4 pb-3 text-[11px] text-muted sm:grid">
+        <div class="mt-6 hidden grid-cols-[1fr_88px_90px_130px] gap-x-4 pb-3 text-[12px] text-muted sm:grid">
           <span>Produk</span><span class="text-center">Jumlah</span><span class="text-center">Harga tersimpan</span><span class="text-right">Subtotal</span>
         </div>
         <div id="saleRows" class="mt-4 sm:mt-0"></div>
@@ -36,20 +36,21 @@
           <x-forms.button id="addRow" icon="plus">Tambah produk</x-forms.button>
         </div>
         <x-forms.input id="saleNote" label="Catatan tambahan (opsional)" container="mt-5" maxlength="120" placeholder="Contoh: penjualan sore" />
-        <div class="mt-5 flex items-center justify-between rounded-xl bg-canvas px-6 py-5">
+        <div class="mt-5 flex items-center justify-between rounded-xl border border-line bg-surface px-6 py-5">
           <div>
             <p class="text-[13px] font-bold">Total penjualan</p>
-            <p id="saleCount" class="mt-1 text-[11px] text-muted">0 jenis produk · 0 unit</p>
+            <p id="saleCount" class="mt-1 text-[12px] text-muted">0 jenis produk · 0 unit</p>
           </div>
-          <p id="saleTotal" class="text-[34px] font-extrabold tracking-tight">Rp0</p>
+          <p id="saleTotal" class="text-[34px] font-bold tracking-tight">Rp0</p>
         </div>
         <x-ui.alert class="mt-5" icon="info" title="Apa yang terjadi setelah disimpan?" id="saleInfo">Pilih produk dan jumlahnya untuk melihat dampaknya pada stok dan laporan.</x-ui.alert>
         <x-ui.alert variant="error" id="saleErr" class="mt-4" />
+        <x-ui.alert variant="success" id="saleDone" class="mt-4" />
         <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
-          <p class="text-[11px] text-muted">Draf ini belum mengubah stok atau laporan.</p>
+          <p class="text-[12px] text-muted">Draf ini belum mengubah stok atau laporan.</p>
           <div class="flex items-center gap-5">
             <x-forms.button id="saleCancel" variant="link">Batal</x-forms.button>
-            <x-forms.button id="saleSave" variant="primary" size="lg" icon="check">Simpan catatan</x-forms.button>
+            <x-forms.button id="saleSave" variant="primary" size="lg" icon="check">Simpan penjualan</x-forms.button>
           </div>
         </div>
       </x-ui.card>
@@ -62,7 +63,7 @@
           <x-forms.input id="expTs" type="datetime-local" label="Tanggal & waktu pengeluaran" />
           <div>
             <label class="text-[12px] font-bold">Dicatat oleh</label>
-            <div class="mt-2 flex items-center rounded-lg border border-line bg-canvas px-3.5 py-3 text-[14px] text-muted">Bu Ratna · Pemilik</div>
+            <div class="mt-2 flex items-center rounded-lg border border-line bg-surface px-3.5 py-3 text-[14px] text-muted">Bu Ratna · Pemilik</div>
           </div>
           <div>
             <x-forms.select id="expCat" label="Kategori" size="md" class="w-full" :options="['' => 'Pilih kategori…', 'Ongkos angkut' => 'Ongkos angkut', 'Listrik & air' => 'Listrik & air', 'Sewa tempat' => 'Sewa tempat', 'Upah pekerja' => 'Upah pekerja', 'Kemasan & plastik' => 'Kemasan & plastik', 'Perlengkapan' => 'Perlengkapan', 'Lainnya' => 'Lainnya']" />
@@ -73,8 +74,9 @@
         <x-forms.input id="expNote" label="Catatan tambahan (opsional)" container="mt-4" maxlength="120" />
         <x-ui.alert class="mt-5" icon="info" title="Apa yang terjadi setelah disimpan?" id="expInfo">Isi kategori dan jumlah untuk melihat dampaknya pada laporan.</x-ui.alert>
         <x-ui.alert variant="error" id="expErr" class="mt-4" />
+        <x-ui.alert variant="success" id="expDone" class="mt-4" />
         <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
-          <p class="text-[11px] text-muted">Pengeluaran tidak mengubah stok produk.</p>
+          <p class="text-[12px] text-muted">Pengeluaran tidak mengubah stok produk.</p>
           <div class="flex items-center gap-5">
             <x-forms.button id="expCancel" variant="link">Batal</x-forms.button>
             <x-forms.button id="expSave" variant="primary" size="lg" icon="check">Simpan pengeluaran</x-forms.button>
@@ -86,20 +88,20 @@
     <div class="flex flex-col gap-5">
       <x-ui.card title="Catatan terbaru" subtitle-id="recentSub">
         <ul id="recent" class="mt-3"></ul>
-        <a href="/laporan-keuangan" class="mt-1 inline-block text-[13px] font-bold text-brand hover:underline">Buka seluruh catatan →</a>
+        <a href="/laporan-keuangan" class="mt-1 inline-block text-[13px] font-bold text-brand-dark hover:underline">Buka seluruh catatan →</a>
       </x-ui.card>
 
       <x-ui.card radius="2xl">
-        <span class="text-brand"><x-ui.icon name="clipboard-check" size="size-6" /></span>
-        <h2 class="mt-4 text-[18px] font-extrabold">Catat sesuai kejadian</h2>
+        <span class="text-brand-dark"><x-ui.icon name="clipboard-check" size="size-6" /></span>
+        <h2 class="mt-4 text-[18px] font-semibold">Catat sesuai kejadian</h2>
         <p class="mt-3 text-[12px] leading-relaxed text-muted">Gunakan harga yang sudah disimpan pemilik. Untuk biaya angkut, listrik, atau kebutuhan operasional lain, pilih tab Pengeluaran.</p>
-        <p class="mt-3 text-[12px] leading-relaxed text-muted">Barang masuk dicatat melalui <a href="/produk-stok" class="font-semibold text-brand underline">Produk &amp; stok</a>, bukan sebagai penjualan.</p>
+        <p class="mt-3 text-[12px] leading-relaxed text-muted">Barang masuk dicatat melalui <a href="/produk-stok" class="font-semibold text-brand-dark underline">Produk &amp; stok</a>, bukan sebagai penjualan.</p>
       </x-ui.card>
 
       <x-ui.card title="Data contoh" title-size="text-[15px]">
         <p class="mt-2 text-[12px] leading-relaxed text-muted">Catatan disimpan di browser ini saja (tanpa server) dan langsung terbaca oleh Laporan keuangan.</p>
         <div class="mt-4 flex flex-wrap gap-2.5">
-          <x-forms.button id="resetData" size="sm" class="text-brand">Kembalikan data contoh</x-forms.button>
+          <x-forms.button id="resetData" size="sm" class="text-brand-dark">Kembalikan data contoh</x-forms.button>
           <x-forms.button id="clearData" size="sm" class="text-muted">Kosongkan catatan</x-forms.button>
         </div>
       </x-ui.card>
@@ -112,14 +114,14 @@
     var M = window.Mantou, rp = M.fmt.rupiah;
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (t) { return String(t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-    var HINT = 'mt-1.5 text-[11px] ', rows = [{ pid: '', qty: 1 }];
+    var HINT = 'mt-1.5 text-[12px] ', rows = [{ pid: '', qty: 1 }];
     var TRASH = '<svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg>';
 
     function setMode(m) {
       var sale = m === 'sale';
       $('saleForm').classList.toggle('hidden', !sale); $('expForm').classList.toggle('hidden', sale);
-      $('tabSale').className = 'inline-flex items-center gap-2 rounded-lg px-4 py-2' + (sale ? ' bg-surface shadow-sm' : '');
-      $('tabExp').className = 'inline-flex items-center gap-2 rounded-lg px-4 py-2' + (sale ? '' : ' bg-surface shadow-sm');
+      $('tabSale').className = 'inline-flex items-center gap-2 rounded-lg px-4 py-2' + (sale ? ' bg-surface text-ink' : '');
+      $('tabExp').className = 'inline-flex items-center gap-2 rounded-lg px-4 py-2' + (sale ? '' : ' bg-surface text-ink');
       $('tabSale').setAttribute('aria-selected', sale); $('tabExp').setAttribute('aria-selected', !sale);
     }
     $('tabSale').onclick = function () { setMode('sale'); };
@@ -127,8 +129,8 @@
 
     function showErr(id, msg) { var e = $(id); e.textContent = msg || ''; e.classList.toggle('hidden', !msg); }
     function badge(id, kind, text) {
-      var c = { draft: 'bg-line/70 text-muted', ready: 'bg-tint text-brand', warn: 'bg-warn-bg text-warn' }[kind];
-      $(id).className = 'inline-block rounded-md px-2.5 py-1 text-[11px] font-bold ' + c; $(id).textContent = text;
+      var c = { draft: 'bg-line text-muted', ready: 'bg-tint text-brand-dark', warn: 'border border-warning bg-warn-bg text-warn' }[kind];
+      $(id).className = 'inline-block rounded-md px-2.5 py-1 text-[12px] font-bold ' + c; $(id).textContent = text;
     }
 
     function renderRows() {
@@ -142,7 +144,7 @@
           '<div><select data-f="pid" aria-label="Produk" class="w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-[13px] font-bold outline-none focus:border-brand">' + opts + '</select><p data-f="hint" class="' + HINT + 'text-muted">Pilih produk untuk melihat stok</p></div>' +
           '<input data-f="qty" type="number" min="1" step="1" inputmode="numeric" aria-label="Jumlah" value="' + esc(r.qty) + '" class="h-10 w-full rounded-lg border border-line bg-surface text-center text-[13px] outline-none focus:border-brand">' +
           '<p data-f="price" class="pt-2.5 text-[13px] text-muted sm:text-center">—</p>' +
-          '<p class="flex items-center justify-end gap-3 pt-2.5 text-[13px] font-bold"><span data-f="sub">—</span><button type="button" data-del="' + i + '" aria-label="Hapus baris" class="text-muted hover:text-brand">' + TRASH + '</button></p></div>';
+          '<p class="flex items-center justify-end gap-3 pt-2.5 text-[13px] font-bold"><span data-f="sub">—</span><button type="button" data-del="' + i + '" aria-label="Hapus baris" class="text-muted hover:text-brand-dark">' + TRASH + '</button></p></div>';
       }).join('');
       refresh();
     }
@@ -163,7 +165,7 @@
           sub.textContent = rp(p.price * qty); types++; units += qty; rev += p.price * qty;
           parts.push(M.shortName(p.name) + ' menjadi ' + (p.stock - qty));
         } else {
-          bad = true; sub.textContent = '—'; hint.className = HINT + 'font-semibold text-warn';
+          bad = true; sub.textContent = '—'; hint.className = HINT + 'font-semibold text-danger-dark';
           hint.textContent = qty > p.stock ? 'Melebihi stok tersedia (' + p.stock + ' ' + p.unit + ')' : 'Jumlah minimal 1';
         }
       });
@@ -195,6 +197,19 @@
     });
     $('addRow').onclick = function () { rows.push({ pid: '', qty: 1 }); renderRows(); };
 
+    function showDone(id, text) {
+      var el = $(id);
+      el.innerHTML = '';
+      el.appendChild(document.createTextNode(text));
+      var link = document.createElement('a');
+      link.href = '/laporan-keuangan'; link.className = 'underline'; link.textContent = 'Lihat di laporan';
+      el.appendChild(link);
+      el.classList.remove('hidden');
+    }
+    function hideDone(id) { $(id).classList.add('hidden'); }
+    $('saleForm').addEventListener('input', function () { hideDone('saleDone'); });
+    $('expForm').addEventListener('input', function () { hideDone('expDone'); });
+
     function resetSale() { rows = [{ pid: '', qty: 1 }]; $('saleNote').value = ''; $('saleTs').value = M.fmt.isoLocal(Date.now()); renderRows(); }
     $('saleCancel').onclick = resetSale;
     $('saleSave').onclick = function () {
@@ -204,6 +219,7 @@
       if (!res.ok) { showErr('saleErr', res.error); return; }
       toast('Penjualan ' + res.tx.id + ' tersimpan · ' + rp(res.tx.revenue));
       resetSale(); renderRecent();
+      showDone('saleDone', 'Penjualan ' + res.tx.id + ' tersimpan: ' + res.tx.units + ' unit, total ' + rp(res.tx.revenue) + '. Stok produk yang terjual sudah berkurang. ');
     };
 
     function amtVal() { return Number(($('expAmt').value || '').replace(/\D/g, '')) || 0; }
@@ -229,6 +245,7 @@
       if (!res.ok) { showErr('expErr', res.error); return; }
       toast('Pengeluaran ' + res.tx.id + ' tersimpan · ' + rp(res.tx.amount));
       resetExp(); renderRecent();
+      showDone('expDone', 'Pengeluaran ' + res.tx.id + ' (' + res.tx.category + ') tersimpan sebesar ' + rp(res.tx.amount) + '. Beban operasional di laporan bertambah; stok tidak berubah. ');
     };
 
     function stamp(ts) { return M.fmt.dateInput(ts) === M.fmt.dateInput(Date.now()) ? M.fmt.time(ts) : M.fmt.dateTime(ts); }
@@ -237,9 +254,9 @@
       $('recentSub').textContent = list.length ? 'Terbaru dari ' + list.length + ' catatan tersimpan' : 'Belum ada catatan';
       $('recent').innerHTML = top.length ? top.map(function (t, i) {
         var sale = t.type === 'sale';
-        return '<li class="py-4' + (i ? ' border-t border-line' : '') + '"><div class="flex items-center justify-between"><span class="inline-block rounded-md px-2.5 py-1 text-[11px] font-bold ' + (sale ? 'bg-tint text-brand' : 'bg-line/70 text-muted') + '">' + (sale ? 'Penjualan' : 'Pengeluaran') + '</span><span class="text-[11px] text-muted">' + stamp(t.ts) + ' · ' + t.id + '</span></div>' +
+        return '<li class="py-4' + (i ? ' border-t border-line' : '') + '"><div class="flex items-center justify-between"><span class="inline-block rounded-md px-2.5 py-1 text-[12px] font-bold ' + (sale ? 'bg-tint text-brand-dark' : 'bg-line text-muted') + '">' + (sale ? 'Penjualan' : 'Pengeluaran') + '</span><span class="text-[12px] text-muted">' + stamp(t.ts) + ' · ' + t.id + '</span></div>' +
           '<div class="mt-2.5 flex items-center justify-between gap-3 text-[13px] font-bold"><span class="min-w-0 truncate">' + esc(M.summary(t)) + '</span><span class="shrink-0">' + rp(sale ? t.revenue : t.amount) + '</span></div>' +
-          '<div class="mt-1.5 text-right"><button type="button" data-void="' + t.id + '" class="text-[11px] font-semibold text-muted hover:text-warn">Batalkan</button></div></li>';
+          '<div class="mt-1.5 text-right"><button type="button" data-void="' + t.id + '" class="text-[12px] font-semibold text-muted hover:text-danger-dark">Batalkan</button></div></li>';
       }).join('') : '<li class="py-6 text-[12px] text-muted">Catatan yang disimpan akan muncul di sini.</li>';
     }
     $('recent').addEventListener('click', function (e) {

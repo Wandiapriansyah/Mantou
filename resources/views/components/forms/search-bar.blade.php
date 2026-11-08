@@ -6,7 +6,7 @@
     <span class="text-muted"><x-ui.icon name="search" size="size-[18px]" /></span>
     <input id="{{ $id }}" type="text" inputmode="search" autocomplete="off" placeholder="{{ $placeholder }}" class="w-full bg-transparent py-3 text-[14px] outline-none">
   </div>
-  <button type="button" id="{{ $buttonId }}" class="inline-flex items-center gap-2 rounded-lg bg-brand px-6 text-[13px] font-bold text-white transition hover:bg-brand-dark">
+  <button type="button" id="{{ $buttonId }}" class="inline-flex items-center gap-2 rounded-lg bg-brand-dark px-6 text-[13px] font-bold text-surface transition hover:bg-ink">
     <x-ui.icon name="search" size="size-[18px]" />Cari
   </button>
 </div>

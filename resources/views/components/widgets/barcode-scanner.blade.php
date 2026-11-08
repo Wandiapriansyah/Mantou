@@ -7,36 +7,36 @@
     <img id="camIdle" src="{{ asset('img/camera.jpg') }}" alt="" onerror="this.style.display='none'" class="size-full object-cover">
     <video id="camVideo" class="absolute inset-0 hidden size-full object-cover" playsinline muted autoplay></video>
     <canvas id="camSnap" class="absolute inset-0 hidden size-full object-cover"></canvas>
-    <div id="camShade" class="absolute inset-0 bg-brand-dark/55"></div>
+    <div id="camShade" class="absolute inset-0 bg-ink/50"></div>
 
     <div id="camFrame" class="absolute inset-x-[14%] inset-y-[24%] hidden" aria-hidden="true">
-      <span class="absolute left-0 top-0 size-7 rounded-tl-md border-l-[3px] border-t-[3px] border-tint"></span>
-      <span class="absolute right-0 top-0 size-7 rounded-tr-md border-r-[3px] border-t-[3px] border-tint"></span>
-      <span class="absolute bottom-0 left-0 size-7 rounded-bl-md border-b-[3px] border-l-[3px] border-tint"></span>
-      <span class="absolute bottom-0 right-0 size-7 rounded-br-md border-b-[3px] border-r-[3px] border-tint"></span>
-      <span id="scanLine" class="absolute inset-x-0 top-1/2 h-px bg-tint"></span>
+      <span class="absolute left-0 top-0 size-7 rounded-tl-md border-l-[3px] border-t-[3px] border-surface"></span>
+      <span class="absolute right-0 top-0 size-7 rounded-tr-md border-r-[3px] border-t-[3px] border-surface"></span>
+      <span class="absolute bottom-0 left-0 size-7 rounded-bl-md border-b-[3px] border-l-[3px] border-surface"></span>
+      <span class="absolute bottom-0 right-0 size-7 rounded-br-md border-b-[3px] border-r-[3px] border-surface"></span>
+      <span id="scanLine" class="absolute inset-x-0 top-1/2 h-px bg-surface"></span>
     </div>
 
     <div id="camStart" class="absolute inset-0 grid place-items-center">
-      <button type="button" id="camStartBtn" class="inline-flex items-center gap-2 rounded-full bg-surface px-5 py-2.5 text-[13px] font-bold text-brand shadow-sm transition hover:bg-tint">
+      <button type="button" id="camStartBtn" class="inline-flex items-center gap-2 rounded-full bg-surface px-5 py-2.5 text-[13px] font-bold text-brand-dark transition hover:bg-tint hover:text-brand-dark">
         <x-ui.icon name="scan" size="size-[18px]" />Aktifkan kamera
       </button>
     </div>
 
-    <span id="camStatus" class="absolute bottom-3 left-1/2 hidden max-w-[90%] -translate-x-1/2 items-center gap-2 rounded-full bg-brand-dark/90 px-4 py-2 text-[12px] font-bold text-white"></span>
+    <span id="camStatus" class="absolute bottom-3 left-1/2 hidden max-w-[90%] -translate-x-1/2 items-center gap-2 rounded-full bg-ink px-4 py-2 text-[12px] font-bold text-surface"></span>
   </div>
 
   <div class="mt-4 flex items-center justify-between gap-3">
-    <p id="camNote" class="text-[11px] text-muted">Kamera belum diaktifkan</p>
+    <p id="camNote" class="text-[12px] text-muted">Kamera belum diaktifkan</p>
     <x-forms.button id="scanBtn" size="compact" icon="scan" class="shrink-0"><span id="scanBtnText">Mulai pindai</span></x-forms.button>
   </div>
 
-  <div class="my-5 flex items-center gap-3 text-[11px] text-muted"><span class="h-px flex-1 bg-line"></span>atau cari secara manual<span class="h-px flex-1 bg-line"></span></div>
+  <div class="my-5 flex items-center gap-3 text-[12px] text-muted"><span class="h-px flex-1 bg-line"></span>atau cari secara manual<span class="h-px flex-1 bg-line"></span></div>
 
   <x-forms.search-bar label="Barcode atau nama produk terdaftar" placeholder="Contoh: 089686170707 atau Indomie" />
 
   <div class="mt-3.5 flex flex-wrap items-center gap-2">
-    <span class="text-[11px] text-muted">Coba contoh:</span>
+    <span class="text-[12px] text-muted">Coba contoh:</span>
     <span id="chips" class="flex flex-wrap gap-2"></span>
   </div>
 </x-ui.card>
@@ -44,7 +44,7 @@
 @push('styles')
 <style>
   @keyframes scan-sweep { 0%,100% { top: 8%; } 50% { top: 92%; } }
-  .scanning #scanLine { top: 8%; height: 2px; animation: scan-sweep 2s ease-in-out infinite; box-shadow: 0 0 10px 1px #e8f0e8; }
+  .scanning #scanLine { top: 8%; height: 2px; animation: scan-sweep 2s ease-in-out infinite; box-shadow: 0 0 10px 1px #fcffff; }
   @media (prefers-reduced-motion: reduce) { .scanning #scanLine { animation: none; top: 50%; } }
 </style>
 @endpush
@@ -76,28 +76,28 @@
     snap.classList.toggle('hidden', state !== 'success');
     idle.classList.toggle('hidden', state === 'scanning' || state === 'success');
 
-    const base = 'rounded-md px-2.5 py-1 text-[11px] font-bold ';
+    const base = 'rounded-md px-2.5 py-1 text-[12px] font-bold ';
     const btn = $('scanBtnText');
 
     if (state === 'idle') {
-      badge.className = base + 'bg-line/70 text-muted'; badge.textContent = 'Kamera mati';
-      note.className = 'text-[11px] text-muted'; note.textContent = 'Kamera belum diaktifkan';
+      badge.className = base + 'bg-line text-muted'; badge.textContent = 'Kamera mati';
+      note.className = 'text-[12px] text-muted'; note.textContent = 'Kamera belum diaktifkan';
       setStatus('', false); btn.textContent = 'Mulai pindai';
     } else if (state === 'starting') {
-      badge.className = base + 'bg-line/70 text-muted'; badge.textContent = 'Menyalakan…';
-      note.className = 'text-[11px] text-muted'; note.textContent = 'Menunggu izin kamera…';
+      badge.className = base + 'bg-line text-muted'; badge.textContent = 'Menyalakan…';
+      note.className = 'text-[12px] text-muted'; note.textContent = 'Menunggu izin kamera…';
       setStatus('Menyalakan kamera…'); btn.textContent = 'Batal';
     } else if (state === 'scanning') {
-      badge.className = base + 'bg-tint text-brand'; badge.textContent = 'Kamera aktif';
-      note.className = 'text-[11px] text-muted'; note.textContent = 'Kamera perangkat · memindai';
+      badge.className = base + 'bg-tint text-brand-dark'; badge.textContent = 'Kamera aktif';
+      note.className = 'text-[12px] text-muted'; note.textContent = 'Kamera perangkat · memindai';
       setStatus('Arahkan barcode ke dalam bingkai'); btn.textContent = 'Hentikan';
     } else if (state === 'success') {
-      badge.className = base + 'bg-line/70 text-muted'; badge.textContent = 'Kamera mati';
-      note.className = 'text-[11px] text-muted'; note.textContent = 'Pindai selesai · kamera dimatikan';
+      badge.className = base + 'bg-line text-muted'; badge.textContent = 'Kamera mati';
+      note.className = 'text-[12px] text-muted'; note.textContent = 'Pindai selesai · kamera dimatikan';
       setStatus(ICON_OK + 'Barcode berhasil dibaca'); btn.textContent = 'Pindai lagi';
     } else if (state === 'error') {
-      badge.className = base + 'bg-warn-bg text-warn'; badge.textContent = 'Kamera tidak tersedia';
-      note.className = 'text-[11px] text-warn'; note.textContent = msg || 'Kamera tidak dapat digunakan';
+      badge.className = base + 'border border-danger bg-danger-bg text-danger-dark'; badge.textContent = 'Kamera tidak tersedia';
+      note.className = 'text-[12px] text-danger-dark'; note.textContent = msg || 'Kamera tidak dapat digunakan';
       setStatus(ICON_WARN + 'Gunakan pencarian manual di bawah'); btn.textContent = 'Coba lagi';
     }
   }

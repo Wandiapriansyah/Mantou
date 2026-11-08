@@ -1,28 +1,26 @@
 <x-layouts.app title="Analisis harga" active="analisis-harga">
-  <x-layouts.page-header title="Analisis harga" subtitle="Susun harga jual dari biaya dan target laba yang sesuai untuk warung Anda.">
-    <x-ui.badge>Keputusan pemilik</x-ui.badge>
-  </x-layouts.page-header>
+  <x-layouts.page-header title="Analisis harga" subtitle="Susun harga jual dari biaya dan target laba yang sesuai untuk warung Anda." />
 
   <x-ui.card padding="p-5" class="mt-6 flex flex-wrap items-center justify-between gap-4">
     <div class="flex items-center gap-5">
-      <span class="grid size-12 place-items-center rounded-xl bg-tint text-brand"><x-ui.icon name="box" /></span>
+      <span class="grid size-12 place-items-center rounded-xl bg-tint text-brand-dark"><x-ui.icon name="box" /></span>
       <div>
-        <label for="pSel" class="text-[11px] text-muted">Produk yang dianalisis</label>
-        <select id="pSel" class="mt-0.5 block max-w-[300px] rounded-lg border border-line bg-surface px-2 py-1.5 text-[16px] font-extrabold outline-none focus:border-brand"></select>
-        <p id="pMeta" class="mt-1 text-[11px] text-muted"></p>
+        <label for="pSel" class="text-[12px] text-muted">Produk yang dianalisis</label>
+        <select id="pSel" class="mt-0.5 block max-w-[300px] rounded-lg border border-line bg-surface px-2 py-1.5 text-[16px] font-bold outline-none focus:border-brand"></select>
+        <p id="pMeta" class="mt-1 text-[12px] text-muted"></p>
       </div>
     </div>
     <div class="flex items-center gap-5">
       <div class="text-right">
-        <p class="text-[11px] text-muted">Harga jual saat ini</p>
-        <p id="curPrice" class="text-[22px] font-extrabold"></p>
+        <p class="text-[12px] text-muted">Harga jual saat ini</p>
+        <p id="curPrice" class="text-[22px] font-bold"></p>
       </div>
       <x-forms.button id="pLink" href="/produk-stok">Lihat di Produk &amp; stok</x-forms.button>
     </div>
   </x-ui.card>
 
-  <div id="empty" class="mt-5 hidden rounded-xl bg-line/50 px-5 py-8 text-center text-[13px] text-muted">
-    Belum ada produk. Tambahkan lewat <a class="font-semibold text-brand underline" href="/produk-stok">Produk &amp; stok</a>.
+  <div id="empty" class="mt-5 hidden rounded-xl border border-line bg-canvas px-5 py-8 text-center text-[13px] text-muted">
+    Belum ada produk. Tambahkan lewat <a class="font-semibold text-brand-dark underline" href="/produk-stok">Produk &amp; stok</a>.
   </div>
 
   <div id="body" class="mt-5 grid items-start gap-5 xl:grid-cols-2">
@@ -45,9 +43,10 @@
             </div>
             <div>
               <x-ui.badge tone="brand" class="inline-block">Markup, bukan margin</x-ui.badge>
-              <p id="mkHint" class="mt-1.5 text-[11px] text-muted"></p>
+              <p id="mkHint" class="mt-1.5 text-[12px] text-muted"></p>
             </div>
           </div>
+          <p class="mt-2 text-[12px] text-faint">Markup: persentase kenaikan harga dari modal. Margin: persentase keuntungan dari harga jual.</p>
         </div>
 
         <div>
@@ -60,31 +59,31 @@
     </x-ui.card>
 
     <x-ui.card tone="tint" radius="2xl" title="Rekomendasi harga jual" title-size="text-[16px]">
-      <p id="rec" class="mt-6 text-[56px] font-extrabold leading-none tracking-tight text-brand"></p>
-      <p id="recDelta" class="mt-4 text-[12px] text-brand"></p>
-      <div class="mt-5 border-t border-brand-soft/40 pt-4">
+      <p id="rec" class="mt-6 text-[56px] font-bold leading-none tracking-tight text-brand-dark"></p>
+      <p id="recDelta" class="mt-4 text-[12px] text-brand-dark"></p>
+      <div class="mt-5 border-t border-brand pt-4">
         <div class="flex items-center justify-between py-1.5 text-[13px]"><span class="text-muted">Biaya perolehan</span><span id="bCost" class="font-bold"></span></div>
         <div class="flex items-center justify-between py-1.5 text-[13px]"><span class="text-muted">Biaya tambahan</span><span id="bExtra" class="font-bold"></span></div>
         <div class="flex items-center justify-between py-1.5 text-[13px]"><span class="font-bold">Total biaya per unit</span><span id="bTotal" class="font-bold"></span></div>
         <div class="flex items-center justify-between py-1.5 text-[13px]"><span id="bMkLbl" class="text-muted"></span><span id="bMk" class="font-bold"></span></div>
       </div>
-      <p id="bSum" class="mt-4 rounded-lg bg-surface px-4 py-3.5 text-center text-[12px] font-bold text-brand"></p>
-      <p class="mt-4 text-[11px] text-muted">Simulasi belum mengubah harga tersimpan. Tinjau sebelum menetapkan harga baru.</p>
+      <p id="bSum" class="mt-4 rounded-lg bg-surface px-4 py-3.5 text-center text-[12px] font-bold text-brand-dark"></p>
+      <p class="mt-4 text-[12px] text-muted">Simulasi belum mengubah harga tersimpan. Tinjau sebelum menetapkan harga baru.</p>
       <div class="mt-4 flex flex-wrap items-center gap-3">
         <x-forms.button id="btnApply" variant="primary" size="lg" />
-        <a id="discLink" href="/rekomendasi-diskon" class="text-[12px] font-bold text-brand hover:underline">Tinjau diskon stok lambat →</a>
+        <a id="discLink" href="/rekomendasi-diskon" class="text-[12px] font-bold text-brand-dark hover:underline">Tinjau diskon stok lambat →</a>
       </div>
     </x-ui.card>
   </div>
 
   <x-ui.card id="cmp" class="mt-5" title="Apa bedanya dengan harga sekarang?">
     <div class="mt-4 grid gap-4 md:grid-cols-2">
-      <div class="rounded-lg bg-canvas px-4 py-3.5">
-        <p id="cmpA" class="text-[11px] text-muted"></p>
+      <div class="rounded-lg border border-line bg-surface px-4 py-3.5">
+        <p id="cmpA" class="text-[12px] text-muted"></p>
         <div class="mt-2 flex items-center justify-between text-[13px]"><span>Estimasi sisa setelah seluruh biaya</span><b id="cmpAv" class="text-[18px]"></b></div>
       </div>
       <div class="rounded-lg bg-tint px-4 py-3.5">
-        <p id="cmpB" class="text-[11px] text-muted"></p>
+        <p id="cmpB" class="text-[12px] text-muted"></p>
         <div class="mt-2 flex items-center justify-between text-[13px]"><span>Estimasi sisa setelah seluruh biaya</span><b id="cmpBv" class="text-[18px]"></b></div>
       </div>
     </div>
@@ -130,7 +129,7 @@
       $('bSum').textContent = rp(total) + ' + ' + rp(profit) + ' = ' + rp(total + profit) + (rec !== Math.round(total + profit) ? ' → dibulatkan ' + rp(rec) : '');
       $('cmpA').textContent = 'Harga saat ini · ' + rp(p.price); $('cmpAv').textContent = rp(p.price - total);
       $('cmpB').textContent = 'Harga rekomendasi · ' + rp(rec); $('cmpBv').textContent = rp(rec - total);
-      $('cmpAv').className = 'text-[18px] ' + (p.price - total < 0 ? 'text-warn' : '');
+      $('cmpAv').className = 'text-[18px] ' + (p.price - total < 0 ? 'text-danger-dark' : '');
       $('btnApply').innerHTML = '<svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Terapkan harga ' + rp(rec);
       $('btnApply').disabled = !(rec >= 1 && rec !== p.price);
     }

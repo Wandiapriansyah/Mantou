@@ -4,7 +4,7 @@
   </x-layouts.page-header>
 
   <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-    <p class="flex items-center gap-3 text-[15px] font-extrabold">
+    <p class="flex items-center gap-3 text-[15px] font-bold">
       <span id="rptTitle">Laporan mingguan</span>
       <x-ui.badge id="rptCount">0 catatan</x-ui.badge>
     </p>
@@ -13,22 +13,22 @@
       <x-forms.input id="from" type="date" size="sm" aria-label="Dari tanggal" />
       <span class="text-[12px] text-muted">–</span>
       <x-forms.input id="to" type="date" size="sm" aria-label="Sampai tanggal" />
-      <x-forms.button id="applyBtn" class="text-brand">Terapkan</x-forms.button>
+      <x-forms.button id="applyBtn" class="text-brand-dark">Terapkan</x-forms.button>
     </div>
   </div>
 
   <section class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
     <x-ui.stat-card id="kRev" label="Pendapatan penjualan" icon="arrow-down-left" caption="Total 0 catatan penjualan" />
-    <x-ui.stat-card id="kCogs" label="Harga pokok terjual (HPP)" icon="box" caption="Biaya perolehan produk yang terjual" />
+    <x-ui.stat-card id="kCogs" label="Harga pokok terjual (HPP)" icon="box" caption="Biaya perolehan produk yang terjual" hint="HPP: modal barang yang terjual." />
     <x-ui.stat-card id="kOpex" label="Beban operasional" icon="arrow-up-right" caption="Biaya usaha di luar HPP · 0 catatan" />
-    <x-ui.stat-card id="kNet" label="Laba bersih tercatat" icon="chart-line" caption="Rp0 – Rp0" highlight />
+    <x-ui.stat-card id="kNet" label="Laba bersih tercatat" icon="chart-line" caption="Rp0 – Rp0" hint="Laba kotor dikurangi biaya operasional." highlight />
   </section>
 
   <div class="mt-5 grid gap-5 xl:grid-cols-[1.35fr_1fr]">
     <x-ui.card title="Pendapatan & beban harian" subtitle-id="chartSub">
-      <div class="mt-4 flex gap-5 text-[11px] text-muted">
+      <div class="mt-4 flex gap-5 text-[12px] text-muted">
         <span class="flex items-center gap-2"><i class="size-2 rounded-sm bg-brand"></i>Pendapatan penjualan</span>
-        <span class="flex items-center gap-2"><i class="size-2 rounded-sm bg-brand-soft/50"></i>Beban operasional</span>
+        <span class="flex items-center gap-2"><i class="size-2 rounded-sm bg-brand-soft"></i>Beban operasional</span>
       </div>
       <x-widgets.chart-container :height="200" :align-end="false" empty-text="Belum ada catatan pada periode ini" />
     </x-ui.card>
@@ -36,13 +36,13 @@
     <x-ui.card title="Dari penjualan ke laba" subtitle="Perhitungan untuk periode terpilih">
       <div class="mt-5">
         <div class="flex items-center justify-between py-1.5 text-[13px]"><span class="font-bold">Pendapatan penjualan</span><span id="wRev" class="font-bold">Rp0</span></div>
-        <div class="flex justify-between py-1.5 text-[13px] text-muted"><span>Dikurangi HPP</span><span id="wCogs">– Rp0</span></div>
-        <div class="my-2 flex justify-between rounded-lg bg-canvas px-4 py-3 text-[13px] font-bold"><span>Laba kotor</span><span id="wGross">Rp0</span></div>
+        <div class="flex justify-between py-1.5 text-[13px] text-muted"><span>Dikurangi HPP (modal barang terjual)</span><span id="wCogs">– Rp0</span></div>
+        <div class="my-2 flex justify-between rounded-lg border border-line bg-surface px-4 py-3 text-[13px] font-bold"><span>Laba kotor</span><span id="wGross">Rp0</span></div>
         <div class="flex justify-between py-1.5 text-[13px] text-muted"><span>Dikurangi beban operasional</span><span id="wOpex">– Rp0</span></div>
       </div>
       <div class="mt-4 flex items-center justify-between border-t border-line pt-5">
-        <span class="text-[14px] font-extrabold">Laba bersih tercatat</span>
-        <span id="wNet" class="text-[26px] font-extrabold text-brand">Rp0</span>
+        <span class="text-[14px] font-bold">Laba bersih tercatat</span>
+        <span id="wNet" class="text-[26px] font-bold text-brand-dark">Rp0</span>
       </div>
     </x-ui.card>
   </div>
@@ -53,11 +53,11 @@
     </x-slot:aside>
     <x-ui.table :headers="['Tanggal & waktu', 'Keterangan', 'Jenis', ['Pendapatan', 'right'], ['HPP', 'right'], ['Beban operasional', 'right']]" body-id="tbody" :min-width="760" />
     <div id="moreWrap" class="hidden border-t border-line px-6 py-4 text-center">
-      <x-forms.button id="moreBtn" size="compact" class="text-brand">Tampilkan lebih banyak</x-forms.button>
+      <x-forms.button id="moreBtn" size="compact" class="text-brand-dark">Tampilkan lebih banyak</x-forms.button>
     </div>
   </x-ui.card>
 
-  <p class="mt-6 flex items-center gap-2 text-[11px] text-muted">Hanya mencakup data yang dicatat di Catatan transaksi. HPP memakai biaya perolehan saat penjualan dicatat. Ringkasan ini bukan layanan akuntansi profesional atau pelaporan pajak.</p>
+  <p class="mt-6 flex items-center gap-2 text-[12px] text-muted">Hanya mencakup data yang dicatat di Catatan transaksi. HPP memakai biaya perolehan saat penjualan dicatat. Ringkasan ini bukan layanan akuntansi profesional atau pelaporan pajak.</p>
 
 @push('scripts')
 <script>
@@ -117,7 +117,7 @@
       $('kNet').textContent = rp(net); $('kNetCap').textContent = rp(gross) + ' – ' + rp(opex);
       $('wRev').textContent = rp(rev); $('wCogs').textContent = '– ' + rp(cogs); $('wGross').textContent = rp(gross);
       $('wOpex').textContent = '– ' + rp(opex); $('wNet').textContent = rp(net);
-      ['kNet', 'wNet'].forEach(function (id) { $(id).classList.toggle('text-warn', net < 0); $(id).classList.toggle('text-brand', id === 'wNet' && net >= 0); $(id).classList.toggle('text-ink', id === 'kNet' && net >= 0); });
+      ['kNet', 'wNet'].forEach(function (id) { $(id).classList.toggle('text-danger-dark', net < 0); $(id).classList.toggle('text-brand-dark', id === 'wNet' && net >= 0); $(id).classList.toggle('text-ink', id === 'kNet' && net >= 0); });
 
       renderChart(all);
       renderTable(all);
@@ -136,7 +136,7 @@
         var m = map[d], h = function (v) { return v > 0 ? Math.max(2, v / top * 100) : 0; }, lab = F.shortDate(d);
         return '<div class="flex min-w-0 flex-1 items-end justify-center gap-px">' +
           '<div title="' + lab + ' · Pendapatan ' + rp(m.rev) + '" class="w-full rounded-t-sm bg-brand" style="max-width:34px;height:' + h(m.rev) + '%"></div>' +
-          '<div title="' + lab + ' · Beban ' + rp(m.opex) + '" class="w-full rounded-t-sm bg-brand-soft/50" style="max-width:34px;height:' + h(m.opex) + '%"></div></div>';
+          '<div title="' + lab + ' · Beban ' + rp(m.opex) + '" class="w-full rounded-t-sm bg-brand-soft" style="max-width:34px;height:' + h(m.opex) + '%"></div></div>';
       }).join('');
       var every = few ? 1 : Math.ceil(days.length / 7);
       $('xAxis').innerHTML = days.map(function (d, k) {
@@ -155,11 +155,11 @@
       $('tbody').innerHTML = rows.length ? rows.map(function (t) {
         var sale = t.type === 'sale';
         return '<tr class="border-t border-line"><td class="px-5 py-4 text-[13px]"><b>' + F.dateTime(t.ts) + '</b></td>' +
-          '<td class="px-3 py-4 text-[13px]"><span class="block font-semibold">' + esc(M.summary(t)) + '</span><span class="text-[11px] text-muted">' + t.id + ' · ' + (sale ? t.units + ' unit' : esc(t.category)) + '</span></td>' +
-          '<td class="px-3 py-4 text-[13px]"><span class="inline-block rounded-md px-2.5 py-1 text-[11px] font-bold ' + (sale ? 'bg-tint text-brand' : 'bg-line/70 text-muted') + '">' + (sale ? 'Penjualan' : 'Pengeluaran') + '</span></td>' +
+          '<td class="px-3 py-4 text-[13px]"><span class="block font-semibold">' + esc(M.summary(t)) + '</span><span class="text-[12px] text-muted">' + t.id + ' · ' + (sale ? t.units + ' unit' : esc(t.category)) + '</span></td>' +
+          '<td class="px-3 py-4 text-[13px]"><span class="inline-block rounded-md px-2.5 py-1 text-[12px] font-bold ' + (sale ? 'bg-tint text-brand-dark' : 'bg-line text-muted') + '">' + (sale ? 'Penjualan' : 'Pengeluaran') + '</span></td>' +
           '<td class="px-3 py-4 text-right text-[13px]">' + (sale ? rp(t.revenue) : '—') + '</td><td class="px-3 py-4 text-right text-[13px]">' + (sale ? rp(t.cogs) : '—') + '</td>' +
           '<td class="px-5 py-4 text-right text-[13px]">' + (sale ? '—' : rp(t.amount)) + '</td></tr>';
-      }).join('') : '<tr class="border-t border-line"><td colspan="6" class="px-5 py-10 text-center text-[13px] text-muted">Belum ada catatan pada periode ini. Tambahkan lewat <a href="/catatan-transaksi" class="font-semibold text-brand underline">Catatan transaksi</a>.</td></tr>';
+      }).join('') : '<tr class="border-t border-line"><td colspan="6" class="px-5 py-10 text-center text-[13px] text-muted">Belum ada catatan pada periode ini. Tambahkan lewat <a href="/catatan-transaksi" class="font-semibold text-brand-dark underline">Catatan transaksi</a>.</td></tr>';
       $('moreWrap').classList.toggle('hidden', shown.length <= limit);
     }
 

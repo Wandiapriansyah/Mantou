@@ -27,7 +27,7 @@
     <p id="tblFoot" class="border-t border-line px-6 py-4 text-[12px] text-muted"></p>
   </x-ui.card>
 
-  <p class="mt-6 flex items-center gap-2 text-[11px] text-muted">Analisis berdasarkan riwayat penjualan yang dicatat pada periode terpilih. Laju jual rata-rata bukan prediksi permintaan; periksa kondisi dan stok fisik sebelum mengambil keputusan.</p>
+  <p class="mt-6 flex items-center gap-2 text-[12px] text-muted">Analisis berdasarkan riwayat penjualan yang dicatat pada periode terpilih. Laju jual rata-rata bukan prediksi permintaan; periksa kondisi dan stok fisik sebelum mengambil keputusan.</p>
 
 @push('scripts')
 <script>
@@ -39,11 +39,11 @@
     var qs = new URLSearchParams(location.search);
     var ICON = function (d) { return '<svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
 
-    var MV = { cepat: ['bg-tint text-brand', 'Cepat'], normal: ['bg-line/70 text-muted', 'Normal'], lambat: ['bg-warn-bg text-warn', 'Lambat'] };
+    var MV = { cepat: ['bg-tint text-brand-dark', 'Cepat'], normal: ['bg-line text-muted', 'Normal'], lambat: ['border border-warning bg-warn-bg text-warn', 'Lambat'] };
     var DAY = 86400000;
     function niceStep(v) { if (v <= 0) return 1; var e = Math.pow(10, Math.floor(Math.log(v) / Math.LN10)), f = v / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e; }
     function card(label, val, cap, icon, hl) {
-      return '<div class="rounded-xl border ' + (hl ? 'border-brand-soft/60 bg-tint' : 'border-line bg-surface') + ' p-5"><div class="flex items-center justify-between text-[12px] text-muted"><span>' + label + '</span><span class="text-brand">' + ICON(icon) + '</span></div><p class="mt-4 text-[28px] font-extrabold leading-none tracking-tight text-ink">' + val + '</p><p class="mt-4 text-[11px] text-muted">' + cap + '</p></div>';
+      return '<div class="rounded-xl border ' + (hl ? 'border-brand bg-tint' : 'border-line bg-surface') + ' p-5"><div class="flex items-center justify-between text-[12px] text-muted"><span>' + label + '</span><span class="text-brand-dark">' + ICON(icon) + '</span></div><p class="mt-4 text-[28px] font-bold leading-none tracking-tight text-ink">' + val + '</p><p class="mt-4 text-[12px] text-muted">' + cap + '</p></div>';
     }
     function chart(R) {
       var days = [], map = {}, d, i;
@@ -58,7 +58,7 @@
       $('bars').style.gap = few ? '1.25rem' : '3px'; $('xAxis').style.gap = few ? '1.25rem' : '3px';
       $('bars').innerHTML = days.map(function (x) {
         var h = map[x] > 0 ? Math.max(2, map[x] / top * 100) : 0;
-        return '<div class="flex h-full min-w-0 flex-1 items-end justify-center" title="' + M.fmt.shortDate(x) + ' · ' + map[x] + ' unit"><div class="flex w-full max-w-[40px] justify-center rounded-t-sm ' + (x === today ? 'bg-brand' : 'bg-brand-soft') + '" style="height:' + h + '%">' + (few && map[x] ? '<span class="pt-1.5 text-[10px] font-bold text-white">' + map[x] + '</span>' : '') + '</div></div>';
+        return '<div class="flex h-full min-w-0 flex-1 items-end justify-center" title="' + M.fmt.shortDate(x) + ' · ' + map[x] + ' unit"><div class="flex w-full max-w-[40px] justify-center rounded-t-sm ' + (x === today ? 'bg-brand' : 'bg-brand-soft') + '" style="height:' + h + '%">' + (few && map[x] ? '<span class="pt-1.5 text-[11px] font-bold text-surface">' + map[x] + '</span>' : '') + '</div></div>';
       }).join('');
       var every = few ? 1 : Math.ceil(days.length / 7);
       $('xAxis').innerHTML = days.map(function (x, k) { return '<span class="min-w-0 flex-1 whitespace-nowrap text-center' + (x === today ? ' font-bold text-ink' : '') + '">' + (k % every === 0 ? (few ? M.fmt.shortDate(x) : new Date(x).getDate()) : '') + '</span>'; }).join('');
@@ -78,12 +78,12 @@
       chart(R);
 
       var ins = '', need = A.filter(function (x) { return x.p.stock < x.p.min; }).sort(function (a, b) { return a.cover - b.cover; })[0];
-      if (need) ins += '<section class="rounded-xl bg-tint p-5"><p class="flex items-center gap-3 text-[15px] font-extrabold"><span class="text-brand">' + ICON('<path d="M12 3l7 4v5M4 7l8 4.5M4 7v9l8 4.5M12 11.5V21"/><path d="M18 15v6M15 18h6"/>') + '</span>Prioritaskan ' + esc(M.shortName(need.p.name)) + '</p><p class="mt-3 text-[12px] leading-relaxed text-muted">' + (need.sold ? 'Terjual ' + need.sold + ' unit (rata-rata ' + pct1(need.rate) + '/hari), ' : 'Belum terjual pada periode ini, ') + 'stok tersisa ' + need.p.stock + ' dari minimum ' + need.p.min + (need.sold ? ' — cukup sekitar ' + pct1(need.cover) + ' hari.' : '.') + ' Tinjau kebutuhan barang masuk berikutnya.</p><a href="/produk-stok?aksi=masuk&pid=' + need.p.id + '" class="mt-3 inline-block text-[12px] font-bold text-brand hover:underline">Catat barang masuk →</a></section>';
-      else ins += '<section class="rounded-xl bg-tint p-5"><p class="text-[15px] font-extrabold">Stok aman</p><p class="mt-3 text-[12px] leading-relaxed text-muted">Semua produk berada di atas batas minimum.</p></section>';
+      if (need) ins += '<section class="rounded-xl bg-tint p-5"><p class="flex items-center gap-3 text-[15px] font-bold"><span class="text-brand-dark">' + ICON('<path d="M12 3l7 4v5M4 7l8 4.5M4 7v9l8 4.5M12 11.5V21"/><path d="M18 15v6M15 18h6"/>') + '</span>Prioritaskan ' + esc(M.shortName(need.p.name)) + '</p><p class="mt-3 text-[12px] leading-relaxed text-muted">' + (need.sold ? 'Terjual ' + need.sold + ' unit (rata-rata ' + pct1(need.rate) + '/hari), ' : 'Belum terjual pada periode ini, ') + 'stok tersisa ' + need.p.stock + ' dari minimum ' + need.p.min + (need.sold ? ' — cukup sekitar ' + pct1(need.cover) + ' hari.' : '.') + ' Tinjau kebutuhan barang masuk berikutnya.</p><a href="/produk-stok?aksi=masuk&pid=' + need.p.id + '" class="mt-3 inline-block text-[12px] font-bold text-brand-dark hover:underline">Catat barang masuk →</a></section>';
+      else ins += '<section class="rounded-xl bg-tint p-5"><p class="text-[15px] font-bold">Stok aman</p><p class="mt-3 text-[12px] leading-relaxed text-muted">Semua produk berada di atas batas minimum.</p></section>';
       if (slow.length) {
         var u = 0, st = 0; slow.forEach(function (x) { u += x.sold; st += x.p.stock; });
-        ins += '<section class="rounded-xl bg-warn-bg p-5"><p class="flex items-center gap-3 text-[15px] font-extrabold"><span class="text-warn">' + ICON('<circle cx="12" cy="12" r="8.5"/><path d="M9 15l6-6"/>') + '</span>Tinjau stok ' + slow.length + ' produk lambat</p><p class="mt-3 text-[12px] leading-relaxed text-muted">' + slow.slice(0, 3).map(function (x) { return esc(M.shortName(x.p.name)); }).join(', ') + (slow.length > 3 ? ' dan lainnya' : '') + ': total stok ' + st + ' unit, hanya ' + u + ' unit terjual dalam periode ini.</p><a href="/rekomendasi-diskon?p=' + R.key + '" class="mt-3 inline-block text-[12px] font-bold text-brand hover:underline">Lihat rekomendasi diskon →</a></section>';
-      } else ins += '<section class="rounded-xl bg-line/50 p-5"><p class="text-[15px] font-extrabold">Tidak ada produk lambat</p><p class="mt-3 text-[12px] leading-relaxed text-muted">Tidak ada produk dengan stok berlebih untuk batas yang dipilih.</p></section>';
+        ins += '<section class="rounded-xl border border-warning bg-warn-bg p-5"><p class="flex items-center gap-3 text-[15px] font-bold"><span class="text-warn">' + ICON('<circle cx="12" cy="12" r="8.5"/><path d="M9 15l6-6"/>') + '</span>Tinjau stok ' + slow.length + ' produk lambat</p><p class="mt-3 text-[12px] leading-relaxed text-muted">' + slow.slice(0, 3).map(function (x) { return esc(M.shortName(x.p.name)); }).join(', ') + (slow.length > 3 ? ' dan lainnya' : '') + ': total stok ' + st + ' unit, hanya ' + u + ' unit terjual dalam periode ini.</p><a href="/rekomendasi-diskon?p=' + R.key + '" class="mt-3 inline-block text-[12px] font-bold text-brand-dark hover:underline">Lihat rekomendasi diskon →</a></section>';
+      } else ins += '<section class="rounded-xl border border-line bg-canvas p-5"><p class="text-[15px] font-bold">Tidak ada produk lambat</p><p class="mt-3 text-[12px] leading-relaxed text-muted">Tidak ada produk dengan stok berlebih untuk batas yang dipilih.</p></section>';
       $('insights').innerHTML = ins;
 
       var cur = $('cat').value, cats = []; s.products.forEach(function (p) { if (cats.indexOf(p.category) < 0) cats.push(p.category); }); cats.sort();
@@ -91,9 +91,9 @@
       var shown = A.filter(function (x) { return !$('cat').value || x.p.category === $('cat').value; }).sort(function (a, b) { return b.sold - a.sold; });
       $('tblSub').textContent = 'Cepat: 3 teratas berdasarkan unit · Lambat: stok di atas minimum dan cukup > ' + $('cover').value + ' hari';
       $('rows').innerHTML = shown.length ? shown.map(function (x) {
-        var m = MV[x.move], p = x.p, act = p.stock < p.min ? '<a class="font-semibold text-brand hover:underline" href="/produk-stok?aksi=masuk&pid=' + p.id + '">Tinjau barang masuk</a>' : x.move === 'lambat' ? '<a class="font-semibold text-brand hover:underline" href="/rekomendasi-diskon?pid=' + p.id + '&p=' + R.key + '">Tinjau diskon, jaga margin</a>' : '<span class="text-muted">Pantau stok rutin</span>';
-        return '<tr class="border-t border-line"><td class="px-5 py-4 text-[13px]"><b>' + esc(p.name) + '</b></td><td class="px-3 py-4 text-right text-[13px]">' + x.sold + '</td><td class="px-3 py-4 text-right text-[13px]' + (p.stock < p.min ? ' font-bold text-warn' : '') + '">' + p.stock + '</td><td class="px-3 py-4 text-right text-[13px]">' + p.min + '</td><td class="px-3 py-4 text-right text-[13px]">' + (x.cover === Infinity ? '—' : pct1(x.cover) + ' hr') + '</td><td class="px-3 py-4"><span class="inline-block rounded-md px-2.5 py-1 text-[11px] font-bold ' + m[0] + '">' + m[1] + '</span></td><td class="px-5 py-4 text-[13px]">' + act + '</td></tr>';
-      }).join('') : '<tr class="border-t border-line"><td colspan="7" class="px-5 py-10 text-center text-[13px] text-muted">Belum ada produk. Tambahkan lewat <a class="font-semibold text-brand underline" href="/produk-stok">Produk &amp; stok</a>.</td></tr>';
+        var m = MV[x.move], p = x.p, act = p.stock < p.min ? '<a class="font-semibold text-brand-dark hover:underline" href="/produk-stok?aksi=masuk&pid=' + p.id + '">Tinjau barang masuk</a>' : x.move === 'lambat' ? '<a class="font-semibold text-brand-dark hover:underline" href="/rekomendasi-diskon?pid=' + p.id + '&p=' + R.key + '">Tinjau diskon, jaga margin</a>' : '<span class="text-muted">Pantau stok rutin</span>';
+        return '<tr class="border-t border-line"><td class="px-5 py-4 text-[13px]"><b>' + esc(p.name) + '</b></td><td class="px-3 py-4 text-right text-[13px]">' + x.sold + '</td><td class="px-3 py-4 text-right text-[13px]' + (p.stock < p.min ? ' font-bold text-warn' : '') + '">' + p.stock + '</td><td class="px-3 py-4 text-right text-[13px]">' + p.min + '</td><td class="px-3 py-4 text-right text-[13px]">' + (x.cover === Infinity ? '—' : pct1(x.cover) + ' hr') + '</td><td class="px-3 py-4"><span class="inline-block rounded-md px-2.5 py-1 text-[12px] font-bold ' + m[0] + '">' + m[1] + '</span></td><td class="px-5 py-4 text-[13px]">' + act + '</td></tr>';
+      }).join('') : '<tr class="border-t border-line"><td colspan="7" class="px-5 py-10 text-center text-[13px] text-muted">Belum ada produk. Tambahkan lewat <a class="font-semibold text-brand-dark underline" href="/produk-stok">Produk &amp; stok</a>.</td></tr>';
       var su = shown.reduce(function (a, x) { return a + x.sold; }, 0);
       $('tblFoot').textContent = shown.length + ' produk ditampilkan dari ' + A.length + ' · ' + su + ' dari ' + tot + ' unit terjual pada periode.';
     }

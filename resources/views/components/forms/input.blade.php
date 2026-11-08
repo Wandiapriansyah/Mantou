@@ -27,6 +27,6 @@
   @endif
 
   @if ($hint || $hintId)
-    <p @if ($hintId) id="{{ $hintId }}" @endif class="mt-2 text-[11px] text-muted">{{ $hint }}</p>
+    <p @if ($hintId) id="{{ $hintId }}" @endif class="mt-2 text-[12px] text-muted">{{ $hint }}</p>
   @endif
 </div>

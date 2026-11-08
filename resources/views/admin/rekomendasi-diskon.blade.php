@@ -24,18 +24,18 @@
             </div>
           </div>
         </div>
-        <p id="rvCalc" class="mt-3 text-[11px] leading-relaxed text-muted"></p>
-        <p class="mt-2 text-[11px] text-muted">Ingin menghitung dari target laba? <a id="rvPriceLink" href="/analisis-harga" class="font-bold text-brand hover:underline">Buka analisis harga</a>.</p>
+        <p id="rvCalc" class="mt-3 text-[12px] leading-relaxed text-muted"></p>
+        <p class="mt-2 text-[12px] text-muted">Ingin menghitung dari target laba? <a id="rvPriceLink" href="/analisis-harga" class="font-bold text-brand-dark hover:underline">Buka analisis harga</a>.</p>
       </div>
       <div>
         <p class="text-[12px] font-bold">Mengapa produk ini disarankan?</p>
         <p id="rvWhy" class="mt-3 text-[12px] leading-relaxed text-muted"></p>
-        <p id="rvMargin" class="mt-3 rounded-lg bg-canvas px-4 py-3 text-[12px] font-semibold"></p>
+        <p id="rvMargin" class="mt-3 rounded-lg border border-line bg-surface px-4 py-3 text-[12px] font-semibold"></p>
       </div>
     </div>
     <div class="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5">
       <label class="flex items-center gap-3 text-[12px] text-muted">
-        <input id="ack" type="checkbox" class="size-4 accent-[#245c45]">Saya sudah meninjau usulan harga dan sisa margin produk ini.
+        <input id="ack" type="checkbox" class="size-4 accent-brand">Saya sudah meninjau usulan harga dan sisa margin produk ini.
       </label>
       <div class="flex items-center gap-6">
         <x-forms.button id="btnSkip" variant="link">Lewati</x-forms.button>
@@ -46,13 +46,13 @@
 
   <x-ui.card id="activeSec" class="mt-5 hidden" flush>
     <div class="p-6 pb-3">
-      <h2 class="text-[18px] font-extrabold">Diskon yang sedang berjalan</h2>
+      <h2 class="text-[18px] font-semibold">Diskon yang sedang berjalan</h2>
       <p class="mt-1 text-[12px] text-muted">Harga di Cek harga dan Produk &amp; stok sudah memakai harga diskon.</p>
     </div>
     <ul id="activeList" class="px-6 pb-3"></ul>
   </x-ui.card>
 
-  <p class="mt-6 flex items-center gap-2 text-[11px] text-muted">Margin kotor = (harga setelah diskon – biaya perolehan) ÷ harga setelah diskon. Belum mengurangi beban operasional. Hanya pemilik atau pengguna berizin yang dapat menerapkan harga.</p>
+  <p class="mt-6 flex items-center gap-2 text-[12px] text-muted">Margin kotor = (harga setelah diskon – biaya perolehan) ÷ harga setelah diskon. Belum mengurangi beban operasional. Hanya pemilik atau pengguna berizin yang dapat menerapkan harga.</p>
 
 @push('scripts')
 <script>
@@ -73,20 +73,20 @@
       slowList = A.filter(function (x) { return x.move === 'lambat' && !x.p.promo; }).sort(function (a, b) { return (b.cover === Infinity ? 1e9 : b.cover) - (a.cover === Infinity ? 1e9 : a.cover); });
       var ok = slowList.filter(function (x) { return M.suggestDiscount(x.p) > 0; }), thin = slowList.length - ok.length;
       var st = 0, u = 0; slowList.forEach(function (x) { st += x.p.stock; u += x.sold; });
-      $('banner').innerHTML = '<span class="mt-0.5 text-brand">' + ICON('<circle cx="12" cy="12" r="8.5"/><path d="M9 15l6-6"/><circle cx="9.5" cy="9.5" r=".8"/><circle cx="14.5" cy="14.5" r=".8"/>') + '</span><div><p class="text-[13px] font-bold">' + (slowList.length ? slowList.length + ' produk untuk ditinjau, bukan diskon otomatis' : 'Belum ada produk yang perlu didiskon') + '</p><p class="mt-1 text-[12px] text-muted">' + (slowList.length ? 'Stok gabungan ' + st + ' unit, terjual ' + u + ' unit pada ' + R.label.replace(/ \d{4}$/, '') + '. ' + (thin ? thin + ' produk bermargin tipis tidak disarankan didiskon. ' : '') : 'Tidak ada produk dengan stok di atas minimum yang cukup lebih dari ' + $('cover').value + ' hari. Ubah batas stok atau periode di atas untuk meninjau ulang. ') + 'Usulan mempertimbangkan stok, riwayat penjualan, dan margin. Hasil penjualan tidak dijamin; keputusan akhir tetap milik pemilik.</p></div>';
+      $('banner').innerHTML = '<span class="mt-0.5 text-brand-dark">' + ICON('<circle cx="12" cy="12" r="8.5"/><path d="M9 15l6-6"/><circle cx="9.5" cy="9.5" r=".8"/><circle cx="14.5" cy="14.5" r=".8"/>') + '</span><div><p class="text-[13px] font-bold">' + (slowList.length ? slowList.length + ' produk untuk ditinjau, bukan diskon otomatis' : 'Belum ada produk yang perlu didiskon') + '</p><p class="mt-1 text-[12px] text-muted">' + (slowList.length ? 'Stok gabungan ' + st + ' unit, terjual ' + u + ' unit pada ' + R.label.replace(/ \d{4}$/, '') + '. ' + (thin ? thin + ' produk bermargin tipis tidak disarankan didiskon. ' : '') : 'Tidak ada produk dengan stok di atas minimum yang cukup lebih dari ' + $('cover').value + ' hari. Ubah batas stok atau periode di atas untuk meninjau ulang. ') + 'Usulan mempertimbangkan stok, riwayat penjualan, dan margin. Hasil penjualan tidak dijamin; keputusan akhir tetap milik pemilik.</p></div>';
 
       if (!sel || !ok.some(function (x) { return x.p.id === sel; })) sel = ok.length ? ok[0].p.id : '';
       $('cards').innerHTML = slowList.slice(0, 6).map(function (x) {
         var p = x.p, pc = M.suggestDiscount(p), np = M.discounted(p.price, pc), on = p.id === sel;
-        return '<section class="rounded-xl ' + (on ? 'border-2 border-brand' : 'border border-line') + ' bg-surface p-5"><div class="flex items-center justify-between"><span class="rounded-md bg-warn-bg px-2.5 py-1 text-[11px] font-bold text-warn">Gerak lambat</span><span class="text-[11px] text-muted">Belum diterapkan</span></div><h2 class="mt-5 text-[18px] font-extrabold">' + esc(p.name) + '</h2><p class="mt-2 text-[12px] text-muted">Stok ' + p.stock + ' unit · terjual ' + x.sold + ' unit / ' + x.days + ' hari</p><div class="mt-4 flex justify-between text-[12px]"><span class="text-muted">Harga saat ini</span><b>' + rp(p.price) + '</b></div>' +
-          (pc ? '<div class="mt-3 rounded-lg bg-tint p-4"><div class="flex justify-between text-[11px] text-muted"><span>Usulan diskon ' + pc + '%</span></div><p class="mt-2 text-[26px] font-extrabold text-brand">' + rp(np) + '</p></div><div class="mt-4 flex flex-col gap-1.5 text-[11px] text-muted"><div class="flex justify-between"><span>Biaya perolehan / unit</span><b class="font-semibold text-ink">' + rp(p.cost) + '</b></div><div class="flex justify-between"><span>Sisa laba kotor / unit</span><b class="text-brand">' + rp(np - p.cost) + '</b></div><div class="flex justify-between"><span>Margin kotor tersisa</span><b class="text-brand">' + pct1(gm(np, p.cost)) + '%</b></div></div><button type="button" data-pick="' + p.id + '" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg ' + (on ? 'bg-tint text-brand' : 'border border-line hover:border-brand') + ' px-4 py-2.5 text-[13px] font-bold">' + (on ? 'Sedang ditinjau' : 'Tinjau usulan') + '</button>'
-               : '<div class="mt-3 rounded-lg bg-warn-bg p-4 text-[12px] font-semibold text-warn">Margin terlalu tipis (' + pct1(gm(p.price, p.cost)) + '%). Diskon tidak disarankan; pertimbangkan jumlah beli atau tinjau harga.</div><a href="/analisis-harga?pid=' + p.id + '" class="mt-4 inline-block text-[12px] font-bold text-brand hover:underline">Buka analisis harga →</a>') + '</section>';
+        return '<section class="rounded-xl ' + (on ? 'border-2 border-brand' : 'border border-line') + ' bg-surface p-5"><div class="flex items-center justify-between"><span class="rounded-md border border-warning bg-warn-bg px-2.5 py-1 text-[12px] font-bold text-warn">Gerak lambat</span><span class="text-[12px] text-muted">Belum diterapkan</span></div><h2 class="mt-5 text-[18px] font-semibold">' + esc(p.name) + '</h2><p class="mt-2 text-[12px] text-muted">Stok ' + p.stock + ' unit · terjual ' + x.sold + ' unit / ' + x.days + ' hari</p><div class="mt-4 flex justify-between text-[12px]"><span class="text-muted">Harga saat ini</span><b>' + rp(p.price) + '</b></div>' +
+          (pc ? '<div class="mt-3 rounded-lg bg-tint p-4"><div class="flex justify-between text-[12px] text-muted"><span>Usulan diskon ' + pc + '%</span></div><p class="mt-2 text-[26px] font-bold text-brand-dark">' + rp(np) + '</p></div><div class="mt-4 flex flex-col gap-1.5 text-[12px] text-muted"><div class="flex justify-between"><span>Biaya perolehan / unit</span><b class="font-semibold text-ink">' + rp(p.cost) + '</b></div><div class="flex justify-between"><span>Sisa laba kotor / unit</span><b class="text-brand-dark">' + rp(np - p.cost) + '</b></div><div class="flex justify-between"><span>Margin kotor tersisa</span><b class="text-brand-dark">' + pct1(gm(np, p.cost)) + '%</b></div></div><button type="button" data-pick="' + p.id + '" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg ' + (on ? 'bg-tint text-brand-dark' : 'border border-line hover:border-brand') + ' px-4 py-2.5 text-[13px] font-bold">' + (on ? 'Sedang ditinjau' : 'Tinjau usulan') + '</button>'
+               : '<div class="mt-3 rounded-lg border border-warning bg-warn-bg p-4 text-[12px] font-semibold text-warn">Margin terlalu tipis (' + pct1(gm(p.price, p.cost)) + '%). Diskon tidak disarankan; pertimbangkan jumlah beli atau tinjau harga.</div><a href="/analisis-harga?pid=' + p.id + '" class="mt-4 inline-block text-[12px] font-bold text-brand-dark hover:underline">Buka analisis harga →</a>') + '</section>';
       }).join('');
 
       var act = s.products.filter(function (p) { return p.promo; });
       $('activeSec').classList.toggle('hidden', !act.length);
       $('activeList').innerHTML = act.map(function (p, i) {
-        return '<li class="flex flex-wrap items-center justify-between gap-3 py-3.5 text-[13px]' + (i ? ' border-t border-line' : '') + '"><span><b>' + esc(p.name) + '</b><span class="block text-[11px] text-muted">Diskon ' + p.promo.pct + '% sejak ' + M.fmt.shortDate(p.promo.ts) + ' · harga normal ' + rp(p.promo.base) + ' → ' + rp(p.price) + '</span></span><button type="button" data-rev="' + p.id + '" class="rounded-lg border border-line px-3.5 py-2 text-[12px] font-bold hover:border-brand">Kembalikan harga ' + rp(p.promo.base) + '</button></li>';
+        return '<li class="flex flex-wrap items-center justify-between gap-3 py-3.5 text-[13px]' + (i ? ' border-t border-line' : '') + '"><span><b>' + esc(p.name) + '</b><span class="block text-[12px] text-muted">Diskon ' + p.promo.pct + '% sejak ' + M.fmt.shortDate(p.promo.ts) + ' · harga normal ' + rp(p.promo.base) + ' → ' + rp(p.price) + '</span></span><button type="button" data-rev="' + p.id + '" class="rounded-lg border border-line px-3.5 py-2 text-[12px] font-bold hover:border-brand">Kembalikan harga ' + rp(p.promo.base) + '</button></li>';
       }).join('');
       review(ok);
     }
@@ -105,7 +105,7 @@
       $('dPrice').textContent = okp ? np.toLocaleString('id-ID') : '—';
       $('rvCalc').textContent = okp ? rp(p.price) + ' – (' + pc + '% × ' + rp(p.price) + ') = ' + rp(np) + ' (dibulatkan ke Rp100). Harga tersimpan tetap ' + rp(p.price) + ' sampai Anda menerapkan perubahan.' : 'Isi diskon antara 1% dan 50%.';
       $('rvMargin').textContent = okp ? rp(np) + ' – ' + rp(p.cost) + ' = ' + rp(np - p.cost) + ' per unit · Margin kotor: ' + pct1(gm(np, p.cost)) + '%' + (low ? ' — tidak boleh sama dengan atau di bawah biaya perolehan!' : '') : '';
-      $('rvMargin').className = 'mt-3 rounded-lg px-4 py-3 text-[12px] font-semibold ' + (low ? 'bg-warn-bg text-warn' : 'bg-canvas');
+      $('rvMargin').className = 'mt-3 rounded-lg px-4 py-3 text-[12px] font-semibold ' + (low ? 'border border-warning bg-warn-bg text-warn' : 'border border-line bg-surface');
       $('btnApply').innerHTML = ICON('<path d="M5 12.5l4.5 4.5L19 7.5"/>') + 'Terapkan harga ' + (okp ? rp(np) : '');
       $('btnApply').disabled = !(okp && np > p.cost && np < p.price && $('ack').checked);
     }

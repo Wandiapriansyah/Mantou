@@ -9,7 +9,13 @@ use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\CashierController;
 
 Route::get('/', function () {
+    return view('landing');
+});
+Route::get('/dasboard', function () {
     return view('admin.index');
+});
+Route::get('/login', function () {
+    return view('auth.login');
 });
 Route::get('cek-harga', function () {
     return view('admin.cek-harga');

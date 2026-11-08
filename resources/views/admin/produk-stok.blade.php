@@ -10,7 +10,7 @@
     <div class="p-6 pb-5">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 class="text-[18px] font-extrabold">Daftar produk</h2>
+          <h2 class="text-[18px] font-semibold">Daftar produk</h2>
           <p class="mt-1 text-[12px] text-muted">Harga jual hanya diubah oleh pengguna berizin.</p>
         </div>
         <div class="flex gap-2.5">
@@ -31,22 +31,22 @@
     <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line px-6 py-4 text-[12px] text-muted">
       <span id="foot"></span>
       <span class="flex items-center gap-3">
-        <button type="button" id="prev" class="font-bold text-brand disabled:opacity-40">Sebelumnya</button>
-        <span id="pg" class="grid size-8 place-items-center rounded-md bg-tint font-bold text-brand">1</span>
-        <button type="button" id="next" class="rounded-lg border border-line px-4 py-2 font-bold text-brand disabled:opacity-40">Berikutnya</button>
+        <button type="button" id="prev" class="font-bold text-brand-dark disabled:line-through">Sebelumnya</button>
+        <span id="pg" class="grid size-8 place-items-center rounded-md bg-tint font-bold text-brand-dark">1</span>
+        <button type="button" id="next" class="rounded-lg border border-line px-4 py-2 font-bold text-brand-dark disabled:line-through">Berikutnya</button>
       </span>
     </div>
   </x-ui.card>
 
   <x-ui.card class="mt-5" flush>
     <div class="p-6 pb-3">
-      <h2 class="text-[18px] font-extrabold">Riwayat stok terbaru</h2>
+      <h2 class="text-[18px] font-semibold">Riwayat stok terbaru</h2>
       <p id="mvSub" class="mt-1 text-[12px] text-muted"></p>
     </div>
     <ul id="moves" class="px-6 pb-3"></ul>
   </x-ui.card>
 
-  <p class="mt-6 flex items-center gap-2 text-[11px] text-muted">
+  <p class="mt-6 flex items-center gap-2 text-[12px] text-muted">
     <span><x-ui.icon name="info" size="size-4" /></span>Stok tercatat = stok awal + barang masuk – penjualan ± penyesuaian. Data tersimpan di browser ini; cocokkan dengan stok fisik secara berkala.
   </p>
 
@@ -79,9 +79,9 @@
       var ICON =
           '<svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
       var BADGE = {
-          habis: ["bg-warn text-white", "Habis"],
-          rendah: ["bg-warn-bg text-warn", "Rendah"],
-          cukup: ["bg-tint text-brand", "Cukup"],
+          habis: ["bg-danger-dark text-white", "Habis"],
+          rendah: ["border border-warning bg-warn-bg text-warn", "Rendah"],
+          cukup: ["bg-tint text-brand-dark", "Cukup"],
       };
       var INP =
           "mt-1.5 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-[13px] outline-none focus:border-brand";
@@ -91,16 +91,16 @@
           return (
               '<div class="rounded-xl border ' +
               (hl
-                  ? "border-brand-soft/60 bg-tint"
+                  ? "border-brand bg-tint"
                   : "border-line bg-surface") +
               ' p-5"><div class="flex items-center justify-between text-[12px] text-muted"><span>' +
               label +
-              '</span><span class="text-brand">' +
+              '</span><span class="text-brand-dark">' +
               ICON +
               icon +
-              '</svg></span></div><p class="mt-4 text-[28px] font-extrabold leading-none tracking-tight text-ink">' +
+              '</svg></span></div><p class="mt-4 text-[28px] font-bold leading-none tracking-tight text-ink">' +
               val +
-              '</p><p class="mt-4 text-[11px] text-muted">' +
+              '</p><p class="mt-4 text-[12px] text-muted">' +
               cap +
               "</p></div>"
           );
@@ -186,7 +186,7 @@
                   })
                   .join("");
       }
-      var ACT = "font-semibold text-muted hover:text-brand";
+      var ACT = "font-semibold text-muted hover:text-brand-dark";
       function renderRows(P) {
           var list = filtered(P),
               pages = Math.max(1, Math.ceil(list.length / PER));
@@ -200,9 +200,9 @@
                         return (
                             '<tr class="border-t border-line"><td class="px-5 py-4 text-[13px]"><a href="/cek-harga?q=' +
                             encodeURIComponent(p.barcode || p.name) +
-                            '" class="font-bold hover:text-brand hover:underline">' +
+                            '" class="font-bold hover:text-brand-dark hover:underline">' +
                             esc(p.name) +
-                            '</a><span class="block text-[11px] text-muted">' +
+                            '</a><span class="block text-[12px] text-muted">' +
                             esc(p.unit) +
                             " · minimum " +
                             p.min +
@@ -218,17 +218,17 @@
                             '</span></td><td class="px-3 py-4 text-right text-[13px]">' +
                             rp(p.price) +
                             (bad
-                                ? '<span class="block text-[10px] font-bold text-warn">di bawah biaya</span>'
+                                ? '<span class="block text-[11px] font-bold text-danger-dark">di bawah biaya</span>'
                                 : "") +
                             (p.promo
-                                ? '<span class="block text-[10px] font-bold text-brand">diskon ' +
+                                ? '<span class="block text-[11px] font-bold text-brand-dark">diskon ' +
                                   p.promo.pct +
                                   "%</span>"
                                 : "") +
                             "</td>" +
                             '<td class="px-3 py-4 text-right text-[13px] font-bold">' +
                             p.stock +
-                            '</td><td class="px-3 py-4"><span class="inline-block rounded-md px-2.5 py-1 text-[11px] font-bold ' +
+                            '</td><td class="px-3 py-4"><span class="inline-block rounded-md px-2.5 py-1 text-[12px] font-bold ' +
                             b[0] +
                             '">' +
                             b[1] +
@@ -247,7 +247,7 @@
                             ACT +
                             '">Sesuaikan</button> · <button type="button" data-a="del" data-id="' +
                             p.id +
-                            '" class="font-semibold text-muted hover:text-warn">Hapus</button></td></tr>'
+                            '" class="font-semibold text-muted hover:text-danger-dark">Hapus</button></td></tr>'
                         );
                     })
                     .join("")
@@ -293,15 +293,15 @@
                         return (
                             '<li class="flex flex-wrap items-center justify-between gap-2 py-3.5 text-[13px]' +
                             (i ? " border-t border-line" : "") +
-                            '"><span class="min-w-0"><span class="mr-2 inline-block rounded-md px-2 py-0.5 text-[11px] font-bold ' +
+                            '"><span class="min-w-0"><span class="mr-2 inline-block rounded-md px-2 py-0.5 text-[12px] font-bold ' +
                             (inn
-                                ? "bg-tint text-brand"
-                                : "bg-line/70 text-muted") +
+                                ? "bg-tint text-brand-dark"
+                                : "bg-line text-muted") +
                             '">' +
                             (inn ? "Masuk" : "Penyesuaian") +
                             "</span><b>" +
                             esc(m.name) +
-                            '</b><span class="block text-[11px] text-muted">' +
+                            '</b><span class="block text-[12px] text-muted">' +
                             m.id +
                             " · " +
                             M.fmt.dateTime(m.ts) +
@@ -314,7 +314,7 @@
                             m.after +
                             ')</span></span><button type="button" data-v="' +
                             m.id +
-                            '" class="text-[11px] font-semibold text-muted hover:text-warn">Batalkan</button></span></li>'
+                            '" class="text-[12px] font-semibold text-muted hover:text-danger-dark">Batalkan</button></span></li>'
                         );
                     })
                     .join("")
@@ -338,7 +338,7 @@
           if (!e) return;
           e.textContent = t;
           e.className =
-              "mt-2 text-[11px] " +
+              "mt-2 text-[12px] " +
               (warn ? "font-semibold text-warn" : "text-muted");
       }
       function stopScan() {
@@ -495,13 +495,13 @@
 
       function open(title, sub, body, okText, onOk) {
           $("modalBox").innerHTML =
-              '<h2 class="text-[20px] font-extrabold">' +
+              '<h2 class="text-[20px] font-semibold">' +
               title +
               '</h2><p class="mt-1 text-[12px] text-muted">' +
               sub +
               '</p><div class="mt-5 space-y-4">' +
               body +
-              '</div><p id="mErr" class="mt-4 hidden rounded-lg bg-warn-bg px-3 py-2 text-[12px] font-semibold text-warn"></p><div class="mt-6 flex justify-end gap-2.5"><button type="button" id="mCancel" class="rounded-lg border border-line px-4 py-2.5 text-[13px] font-bold hover:border-brand">Batal</button><button type="button" id="mOk" class="rounded-lg bg-brand px-4 py-2.5 text-[13px] font-bold text-white hover:bg-brand-dark">' +
+              '</div><p id="mErr" class="mt-4 hidden rounded-lg border border-danger bg-danger-bg px-3 py-2 text-[12px] font-semibold text-warn"></p><div class="mt-6 flex justify-end gap-2.5"><button type="button" id="mCancel" class="rounded-lg border border-line px-4 py-2.5 text-[13px] font-bold hover:border-brand">Batal</button><button type="button" id="mOk" class="rounded-lg bg-brand px-4 py-2.5 text-[13px] font-bold text-surface hover:bg-brand-dark">' +
               okText +
               "</button></div>";
           $("modal").classList.remove("hidden");
@@ -549,7 +549,7 @@
               INP +
               '">' +
               (hint
-                  ? '<span class="mt-1 block text-[11px] font-normal">' +
+                  ? '<span class="mt-1 block text-[12px] font-normal">' +
                     hint +
                     "</span>"
                   : "") +
@@ -606,7 +606,7 @@
                   LBL +
                   '">Barcode (opsional)</label><div class="mt-1.5 flex gap-2"><input id="fBc" type="text" inputmode="numeric" autocomplete="off" value="' +
                   esc(p.barcode || "") +
-                  '" placeholder="Ketik, pindai kamera, atau alat scan" class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2.5 text-[13px] outline-none focus:border-brand"><button type="button" id="scanBtn" class="shrink-0 rounded-lg border border-line px-3.5 text-[13px] font-bold text-brand hover:border-brand">Pindai</button></div><p id="scanMsg" class="mt-2 hidden text-[11px] text-muted"></p><div id="scanBox" class="relative mt-3 hidden aspect-video overflow-hidden rounded-xl bg-ink"><video id="scanVideo" class="size-full object-cover" playsinline muted autoplay></video><span class="pointer-events-none absolute inset-x-6 top-1/2 h-0.5 bg-brand-soft/80"></span></div></div>' +
+                  '" placeholder="Ketik, pindai kamera, atau alat scan" class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2.5 text-[13px] outline-none focus:border-brand"><button type="button" id="scanBtn" class="shrink-0 rounded-lg border border-line px-3.5 text-[13px] font-bold text-brand-dark hover:border-brand">Pindai</button></div><p id="scanMsg" class="mt-2 hidden text-[12px] text-muted"></p><div id="scanBox" class="relative mt-3 hidden aspect-video overflow-hidden rounded-xl bg-ink"><video id="scanVideo" class="size-full object-cover" playsinline muted autoplay></video><span class="pointer-events-none absolute inset-x-6 top-1/2 h-0.5 bg-brand"></span></div></div>' +
                   '<div class="grid grid-cols-2 gap-4">' +
                   field(
                       "fUnit",

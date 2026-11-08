@@ -2,7 +2,7 @@
 
 @php
     $variants = [
-        'primary' => 'bg-brand text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-40',
+        'primary' => 'bg-brand-dark text-surface hover:bg-ink disabled:cursor-not-allowed disabled:bg-faint',
         'outline' => 'border border-line bg-surface hover:border-brand',
     ];
 
@@ -14,7 +14,7 @@
     ];
 
     $classes = $variant === 'link'
-        ? 'text-[13px] font-bold text-brand'
+        ? 'text-[13px] font-bold text-brand-dark'
         : 'inline-flex items-center gap-2 rounded-lg font-bold transition '.$variants[$variant].' '.$sizes[$size];
 @endphp
 

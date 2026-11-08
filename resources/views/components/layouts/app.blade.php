@@ -1,47 +1,29 @@
 @props(['title', 'active' => null, 'role' => 'admin'])
 
 @php
-    $home = $role === 'worker' ? '/cek-harga' : '/';
+    $home = $role === 'worker' ? '/cek-harga' : '/dasboard';
 
     $menu = collect([
-        ['key' => 'index', 'group' => 'Kelola warung', 'href' => '/', 'label' => 'Ringkasan', 'short' => 'Ringkasan', 'icon' => 'dashboard', 'roles' => ['admin']],
-        ['key' => 'cek-harga', 'group' => 'Kelola warung', 'href' => '/cek-harga', 'label' => 'Cek harga', 'short' => 'Cek harga', 'icon' => 'barcode', 'roles' => ['admin', 'worker']],
-        ['key' => 'produk-stok', 'group' => 'Kelola warung', 'href' => '/produk-stok', 'label' => 'Produk & stok', 'short' => 'Produk', 'icon' => 'box', 'roles' => ['admin', 'worker']],
-        ['key' => 'catatan-transaksi', 'group' => 'Kelola warung', 'href' => '/catatan-transaksi', 'label' => 'Catatan transaksi', 'short' => 'Transaksi', 'icon' => 'document', 'roles' => ['admin', 'worker']],
-        ['key' => 'laporan-keuangan', 'group' => 'Kelola warung', 'href' => '/laporan-keuangan', 'label' => 'Laporan keuangan', 'short' => 'Laporan', 'icon' => 'chart-line', 'roles' => ['admin']],
-        ['key' => 'analisis-harga', 'group' => 'Wawasan usaha', 'href' => '/analisis-harga', 'label' => 'Analisis harga', 'short' => 'Harga', 'icon' => 'calculator', 'roles' => ['admin']],
-        ['key' => 'analisis-stok-penjualan', 'group' => 'Wawasan usaha', 'href' => '/analisis-stok-penjualan', 'label' => 'Analisis stok & penjualan', 'short' => 'Penjualan', 'icon' => 'bars', 'roles' => ['admin']],
-        ['key' => 'rekomendasi-diskon', 'group' => 'Wawasan usaha', 'href' => '/rekomendasi-diskon', 'label' => 'Rekomendasi diskon', 'short' => 'Diskon', 'icon' => 'discount', 'roles' => ['admin']],
+        ['key' => 'index', 'group' => 'Kelola warung', 'href' => '/dasboard', 'label' => 'Ringkasan', 'short' => 'Ringkasan', 'icon' => 'dashboard', 'desc' => 'Kondisi usaha sekilas dari catatan Anda', 'primary' => true, 'roles' => ['admin']],
+        ['key' => 'cek-harga', 'group' => 'Kelola warung', 'href' => '/cek-harga', 'label' => 'Cek harga', 'short' => 'Cek harga', 'icon' => 'barcode', 'desc' => 'Lihat harga produk, tanpa mencatat penjualan', 'primary' => true, 'roles' => ['admin', 'worker']],
+        ['key' => 'produk-stok', 'group' => 'Kelola warung', 'href' => '/produk-stok', 'label' => 'Produk & stok', 'short' => 'Produk', 'icon' => 'box', 'desc' => 'Harga tersimpan dan persediaan barang', 'primary' => true, 'roles' => ['admin', 'worker']],
+        ['key' => 'catatan-transaksi', 'group' => 'Kelola warung', 'href' => '/catatan-transaksi', 'label' => 'Catatan transaksi', 'short' => 'Transaksi', 'icon' => 'document', 'desc' => 'Catat penjualan dan pengeluaran harian', 'primary' => true, 'roles' => ['admin', 'worker']],
+        ['key' => 'laporan-keuangan', 'group' => 'Kelola warung', 'href' => '/laporan-keuangan', 'label' => 'Laporan keuangan', 'short' => 'Laporan', 'icon' => 'chart-line', 'desc' => 'Pendapatan, HPP, beban, dan laba bersih', 'primary' => false, 'roles' => ['admin']],
+        ['key' => 'analisis-harga', 'group' => 'Wawasan usaha', 'href' => '/analisis-harga', 'label' => 'Analisis harga', 'short' => 'Harga', 'icon' => 'calculator', 'desc' => 'Hitung harga jual dari modal dan target laba', 'primary' => false, 'roles' => ['admin']],
+        ['key' => 'analisis-stok-penjualan', 'group' => 'Wawasan usaha', 'href' => '/analisis-stok-penjualan', 'label' => 'Analisis stok & penjualan', 'short' => 'Penjualan', 'icon' => 'bars', 'desc' => 'Produk cepat dan lambat laku', 'primary' => false, 'roles' => ['admin']],
+        ['key' => 'rekomendasi-diskon', 'group' => 'Wawasan usaha', 'href' => '/rekomendasi-diskon', 'label' => 'Rekomendasi diskon', 'short' => 'Diskon', 'icon' => 'discount', 'desc' => 'Saran diskon untuk stok yang lambat laku', 'primary' => false, 'roles' => ['admin']],
     ])->filter(fn ($item) => in_array($role, $item['roles']))->values();
+
+    if ($role === 'worker') {
+        $workerOrder = ['cek-harga', 'catatan-transaksi', 'produk-stok'];
+        $menu = $menu->map(fn ($item) => [...$item, 'primary' => true])->sortBy(fn ($item) => array_search($item['key'], $workerOrder))->values();
+    }
 @endphp
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>{{ $title }} · Mantou</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.4"></script>
-<style type="text/tailwindcss">
-  @theme {
-    --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-    --color-canvas: #f6f5ef;
-    --color-surface: #fffefa;
-    --color-line: #e1e5dc;
-    --color-tint: #e8f0e8;
-    --color-brand: #245c45;
-    --color-brand-dark: #203f32;
-    --color-brand-soft: #7fa68a;
-    --color-ink: #1f3a2d;
-    --color-muted: #6b7a70;
-    --color-warn-bg: #fbf0d9;
-    --color-warn: #9a6a1f;
-  }
-</style>
-@stack('styles')
+<x-layouts.head :title="$title" />
 </head>
 <body class="min-h-screen bg-canvas font-sans text-ink antialiased">
 <div class="flex min-h-screen">

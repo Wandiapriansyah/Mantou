@@ -2,9 +2,9 @@
 
 @php
     $tones = [
-        'muted' => 'bg-line/70 text-muted',
-        'brand' => 'bg-tint text-brand',
-        'warn' => 'bg-warn-bg text-warn',
+        'muted' => 'bg-line text-muted',
+        'brand' => 'bg-tint text-brand-dark',
+        'warn' => 'border border-warning bg-warn-bg text-warn',
     ];
 
     $sizes = [
@@ -13,4 +13,4 @@
     ];
 @endphp
 
-<span {{ $attributes->class(['rounded-md text-[11px] font-bold', $sizes[$size], $tones[$tone]]) }}>{{ $slot }}</span>
+<span {{ $attributes->class(['rounded-md text-[12px] font-bold', $sizes[$size], $tones[$tone]]) }}>{{ $slot }}</span>

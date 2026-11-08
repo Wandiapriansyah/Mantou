@@ -12,7 +12,7 @@
 @php
     $tones = [
         'surface' => 'border-line bg-surface',
-        'tint' => 'border-brand-soft/50 bg-tint',
+        'tint' => 'border-brand bg-tint',
     ];
 
     $radii = [
@@ -25,7 +25,7 @@
   @if ($title)
     <div @class(['flex flex-wrap items-start justify-between gap-3', 'p-6 pb-5' => $flush])>
       <div>
-        <h2 class="{{ $titleSize }} font-extrabold">{{ $title }}</h2>
+        <h2 class="{{ $titleSize }} font-semibold">{{ $title }}</h2>
         @if ($subtitle || $subtitleId)
           <p @if ($subtitleId) id="{{ $subtitleId }}" @endif class="mt-1 text-[12px] text-muted">{{ $subtitle }}</p>
         @endif
