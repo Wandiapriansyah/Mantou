@@ -14,7 +14,7 @@ class CashierController extends Controller
     // Menampilkan halaman utama kasir (tampilan scan barcode di smartphone)
     public function index()
     {
-        return view('cashier.index');
+        return view('worker.cek-harga');
     }
 
     // Mencari produk berdasarkan barcode (untuk AJAX/kamera scan)
