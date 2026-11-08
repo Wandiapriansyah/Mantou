@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
-use App\Models\Transaksi;
-use App\Models\TransaksiDetail;
+use App\Models\Transaction;
+use App\Models\TransactionDetail;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class CashierController extends Controller
@@ -48,8 +49,8 @@ class CashierController extends Controller
 
         try {
             // Simpan ke tabel transaksi (header)
-            $transaksi = Transaksi::create([
-                'user_id' => auth()->id(),
+            $transaksi = Transaction::create([
+                'user_id' => Auth::id(),
                 'transaction_date' => now(),
                 'payment_method' => $request->payment_method,
             ]);
@@ -58,14 +59,14 @@ class CashierController extends Controller
             foreach ($request->items as $item) {
                 $product = Product::findOrFail($item['product_id']);
 
-                if ($product->stok < $item['purchase_quantity']) {
-                    throw new \Exception("Stok produk {$product->nama_produk} tidak mencukupi!");
+                if ($product->stock < $item['purchase_quantity']) {
+                    throw new \Exception("Stok produk {$product->product_name} tidak mencukupi!");
                 }
 
-                $hargaSatuan = $product->harga_jual;
+                $hargaSatuan = $product->selling_price;
                 $subtotal = $hargaSatuan * $item['purchase_quantity'];
 
-                TransaksiDetail::create([
+                TransactionDetail::create([
                     'transaksi_id' => $transaksi->id,
                     'product_id' => $product->id,
                     'purchase_quantity' => $item['purchase_quantity'],
