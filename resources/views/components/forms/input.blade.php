@@ -1,10 +1,12 @@
-@props(['id', 'label' => null, 'type' => 'text', 'prefix' => null, 'suffix' => null, 'hint' => null, 'hintId' => null, 'size' => 'md', 'wrapper' => '', 'container' => ''])
+@props(['id', 'label' => null, 'type' => 'text', 'prefix' => null, 'suffix' => null, 'hint' => null, 'hintId' => null, 'size' => 'md', 'wrapper' => '', 'container' => '', 'error' => null])
 
 @php
     $sizes = [
         'md' => 'px-3.5 py-3 text-[14px]',
         'sm' => 'px-3.5 py-2.5 text-[13px]',
     ];
+    $border = $error ? 'border-danger' : 'border-line';
+    $described = $error ? $id.'-error' : null;
 @endphp
 
 <div @class([$container])>
@@ -13,7 +15,7 @@
   @endif
 
   @if ($prefix || $suffix)
-    <div @class(['mt-2 flex items-center gap-3 rounded-lg border border-line bg-surface focus-within:border-brand', $sizes[$size], $wrapper])>
+    <div @class(['mt-2 flex items-center gap-3 rounded-lg border bg-surface focus-within:border-brand', $border, $sizes[$size], $wrapper])>
       @if ($prefix)
         <span class="text-[13px] text-muted">{{ $prefix }}</span>
       @endif
@@ -23,7 +25,11 @@
       @endif
     </div>
   @else
-    <input id="{{ $id }}" type="{{ $type }}" {{ $attributes->class(['w-full rounded-lg border border-line bg-surface outline-none focus:border-brand', $sizes[$size], 'mt-2' => $label]) }}>
+    <input id="{{ $id }}" type="{{ $type }}" {{ $attributes->class(['w-full rounded-lg border bg-surface outline-none focus:border-brand', $border, $sizes[$size], 'mt-2' => $label])->merge(['aria-invalid' => $error ? 'true' : null, 'aria-describedby' => $described]) }}>
+  @endif
+
+  @if ($error)
+    <p id="{{ $id }}-error" class="mt-2 text-[13px] font-semibold text-danger-dark">{{ $error }}</p>
   @endif
 
   @if ($hint || $hintId)
