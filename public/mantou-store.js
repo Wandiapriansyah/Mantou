@@ -26,7 +26,9 @@
     { category: 'Upah pekerja',      desc: 'Upah harian penjaga',  amount: 60000 },
     { category: 'Lainnya',           desc: 'Iuran kebersihan',     amount: 15000 }
   ];
-  var OWNER = 'Bu Ratna · Pemilik';
+  // identitas pencatat diisi layout dari akun yang sedang masuk (lihat Mantou.setUser); tidak ada nama bawaan.
+  var USER = { name: '', title: '', warung: '' };
+  function owner() { return USER.name ? USER.name + (USER.title ? ' · ' + USER.title : '') : (USER.title || 'Pengguna'); }
 
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
   function pad(n, l) { n = String(n); l = l || 2; while (n.length < l) n = '0' + n; return n; }
@@ -66,7 +68,7 @@
       items.push({ pid: l.p.id, name: l.p.name, qty: l.qty, price: l.p.price, cost: l.p.cost });
       rev += l.p.price * l.qty; cogs += l.p.cost * l.qty; units += l.qty;
     });
-    return { id: id, type: 'sale', ts: ts, by: OWNER, note: note || '', items: items, revenue: rev, cogs: cogs, units: units };
+    return { id: id, type: 'sale', ts: ts, by: owner(), note: note || '', items: items, revenue: rev, cogs: cogs, units: units };
   }
 
   function seed() {
@@ -92,7 +94,7 @@
     var tx = [];
     sales.forEach(function (s, i) { tx.push(buildSale('CT-' + pad(i + 1, 4), s.ts, s.lines, '')); });
     exps.forEach(function (e, i) {
-      tx.push({ id: 'BK-' + pad(i + 1, 4), type: 'expense', ts: e.ts, by: OWNER, category: e.ex.category, desc: e.ex.desc, amount: e.ex.amount, note: '' });
+      tx.push({ id: 'BK-' + pad(i + 1, 4), type: 'expense', ts: e.ts, by: owner(), category: e.ex.category, desc: e.ex.desc, amount: e.ex.amount, note: '' });
     });
     prods.forEach(function (p) { p.upd = now; });
     return { v: 1, products: prods, tx: tx, moves: [], seq: { CT: sales.length, BK: exps.length, P: prods.length, ST: 0 } };
@@ -101,25 +103,34 @@
   /* ---------- penyimpanan ---------- */
   var cache = null;
   function read() { try { var r = g.localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch (e) {} return null; }
-  function save(s) { cache = s; try { g.localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+  function save(s, quiet) {
+    cache = s; try { g.localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+    if (!quiet) notify();
+  }
+  function maxSeq(list, prefix) {
+    var re = new RegExp('^' + prefix + '-(\\d+)$'), m = 0;
+    list.forEach(function (t) { var r = t && re.exec(String(t.id)); if (r) m = Math.max(m, +r[1]); });
+    return m;
+  }
   function get() {
     var s = read();
-    if (s && s.tx && s.products) {
+    if (s && Array.isArray(s.tx) && Array.isArray(s.products)) {
       // data lama (tanpa batas minimum stok) dilengkapi dari daftar produk bawaan
       var dirty = false;
       s.products.forEach(function (p) { if (typeof p.min !== 'number') { var d = find(PRODUCTS, p.id); p.min = d ? d.min : 10; dirty = true; } });
       s.products.forEach(function (p) { if (!p.upd) { p.upd = Date.now(); dirty = true; } });
-      if (!s.moves) { s.moves = []; dirty = true; }
-      if (!s.seq.ST || !s.seq.P) {
-        s.seq.ST = s.seq.ST || s.moves.length;
-        s.seq.P = s.seq.P || s.products.reduce(function (m, p) { return Math.max(m, parseInt(String(p.id).slice(1), 10) || 0); }, 0);
-        dirty = true;
-      }
-      if (dirty) save(s);
+      if (!Array.isArray(s.moves)) { s.moves = []; dirty = true; }
+      if (!s.seq || typeof s.seq !== 'object') { s.seq = {}; dirty = true; }
+      var want = {
+        CT: maxSeq(s.tx, 'CT'), BK: maxSeq(s.tx, 'BK'), ST: Math.max(s.moves.length, maxSeq(s.moves, 'ST')),
+        P: s.products.reduce(function (m, p) { return Math.max(m, parseInt(String(p.id).slice(1), 10) || 0); }, 0)
+      };
+      for (var k in want) if (!(s.seq[k] >= want[k])) { s.seq[k] = want[k]; dirty = true; }
+      if (dirty) save(s, true);
       cache = s; return s;
     }
     if (cache) return cache;
-    cache = seed(); save(cache); return cache;
+    cache = seed(); save(cache, true); return cache;
   }
   function find(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
   function fail(m) { return { ok: false, error: m }; }
@@ -150,7 +161,7 @@
     if (!inp.category) return fail('Pilih kategori pengeluaran.');
     if (!(amount >= 1)) return fail('Isi jumlah pengeluaran.');
     s.seq.BK += 1;
-    var tx = { id: 'BK-' + pad(s.seq.BK, 4), type: 'expense', ts: inp.ts, by: OWNER, category: inp.category,
+    var tx = { id: 'BK-' + pad(s.seq.BK, 4), type: 'expense', ts: inp.ts, by: owner(), category: inp.category,
                desc: (inp.desc || '').trim() || inp.category, amount: Math.round(amount), note: inp.note || '' };
     s.tx.push(tx); save(s);
     return { ok: true, tx: tx };
@@ -168,7 +179,7 @@
 
 
   /* ---------- produk & stok ---------- */
-  function status(p) { return p.stock <= 0 ? 'habis' : p.stock < p.min ? 'rendah' : 'cukup'; }
+  function status(p) { var st = num(p.stock), mn = num(p.min); return st <= 0 ? 'habis' : st < mn ? 'rendah' : 'cukup'; }
   function int(v) { v = Number(v); return v >= 0 && v === Math.floor(v) ? v : NaN; }
 
   function cleanProduct(s, d, selfId) {
@@ -190,7 +201,7 @@
     return { ok: true, f: { name: name, barcode: bc, category: cat, unit: unit, cost: cost, price: price, min: min } };
   }
   function addMove(s, m) {
-    s.seq.ST += 1; m.id = 'ST-' + pad(s.seq.ST, 4); m.by = OWNER; s.moves.push(m); return m;
+    s.seq.ST += 1; m.id = 'ST-' + pad(s.seq.ST, 4); m.by = owner(); s.moves.push(m); return m;
   }
 
   function addProduct(inp) {
@@ -264,9 +275,9 @@
   /* ---------- analisis (dipakai analisis-stok, rekomendasi-diskon, analisis-harga) ---------- */
   function range(p) {
     var n = new Date(), y = n.getFullYear(), m = n.getMonth(), d = n.getDate();
-    var days = p === '14' ? 14 : p === '30' ? 30 : p === 'month' ? d : 7;
+    var days = p === 'today' ? 1 : p === '14' ? 14 : p === '30' ? 30 : p === 'month' ? d : 7;
     var f = new Date(y, m, d - days + 1), from = f.getTime(), to = new Date(y, m, d + 1).getTime() - 1;
-    var label = f.getMonth() === m ? f.getDate() + '–' + d + ' ' + MONL[m] + ' ' + y
+    var label = days === 1 ? fmt.longDate(from) : f.getMonth() === m ? f.getDate() + '–' + d + ' ' + MONL[m] + ' ' + y
       : f.getDate() + ' ' + MON[f.getMonth()] + ' – ' + d + ' ' + MON[m] + ' ' + y;
     return { key: p, from: from, to: to, days: days, label: label };
   }
@@ -317,27 +328,94 @@
     return { total: tot, units: units, perUnit: units ? Math.round(tot / units / 10) * 10 : 0 };
   }
 
-  function reset() { cache = null; try { g.localStorage.removeItem(KEY); } catch (e) {} get(); }
+  function reset() { cache = null; try { g.localStorage.removeItem(KEY); } catch (e) {} get(); notify(); }
   function clear() { var s = { v: 1, products: clone(PRODUCTS), tx: [], moves: [], seq: { CT: 0, BK: 0, P: PRODUCTS.length, ST: 0 } }; s.products.forEach(function (p) { p.upd = Date.now(); }); save(s); }
 
   function shortName(n) { return String(n).split(' ')[0]; }
   function summary(tx) {
     if (tx.type === 'expense') return tx.desc;
-    var n = tx.items;
+    var n = Array.isArray(tx.items) ? tx.items : [];
+    if (!n.length) return 'Penjualan';
     if (n.length === 1) return n[0].name;
     if (n.length === 2) return shortName(n[0].name) + ' & ' + shortName(n[1].name);
     return shortName(n[0].name) + ', ' + shortName(n[1].name) + ' +' + (n.length - 2);
   }
 
-  function onChange(cb) { g.addEventListener('storage', function (e) { if (e.key === KEY) cb(); }); }
-
-  function setHeaderDate() {
-    var label = fmt.fullDate(Date.now()), spans = document.querySelectorAll('header span');
-    for (var i = 0; i < spans.length; i++) if (/Juni 2026/.test(spans[i].textContent) && spans[i].children.length === 0) spans[i].textContent = label;
+  /* ---------- perubahan data ---------- */
+  var listeners = [], wired = false;
+  function notify() {
+    listeners.slice().forEach(function (cb) { try { cb(); } catch (e) { if (g.console) g.console.error(e); } });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setHeaderDate); else setHeaderDate();
+  // satu pasang listener global saja, berapa kali pun onChange dipanggil; tab lain lewat event 'storage'
+  function onChange(cb) {
+    if (typeof cb === 'function') listeners.push(cb);
+    if (wired) return;
+    wired = true;
+    g.addEventListener('storage', function (e) { if (e.key === KEY || e.key === null) { cache = null; notify(); } });
+  }
+
+  /* ---------- identitas pengguna (diisi layout dari akun yang masuk) ---------- */
+  function setUser(u) {
+    u = u || {};
+    USER = { name: String(u.name || '').trim(), title: String(u.title || '').trim(), warung: String(u.warung || '').trim() };
+    if (typeof document === 'undefined') return;
+    var els = document.querySelectorAll('[data-mantou-user]');
+    for (var i = 0; i < els.length; i++) els[i].textContent = owner();
+  }
+  function getUser() { return { name: USER.name, title: USER.title, warung: USER.warung }; }
+
+  /* ---------- perhitungan ringkasan (satu-satunya sumber angka KPI) ---------- */
+  // angka aman: null, kosong, teks bukan angka -> 0; teks numerik ("1500") dibaca sebagai angka
+  function num(v) {
+    if (v === null || v === undefined || v === '' || typeof v === 'boolean') return 0;
+    var n = typeof v === 'number' ? v : Number(String(v).trim());
+    return isFinite(n) ? n : 0;
+  }
+  function hasNum(v) { return v !== null && v !== undefined && v !== '' && typeof v !== 'boolean' && isFinite(Number(v)); }
+  function toTs(v) {
+    var n = typeof v === 'number' ? v : (typeof v === 'string' && /^\d+$/.test(v.trim()) ? Number(v) : Date.parse(v));
+    return isFinite(n) && n > 0 ? n : NaN;
+  }
+  // salinan transaksi yang sudah dinormalkan; yang tidak punya tipe/waktu valid dilewati (data tersimpan tidak diubah)
+  function cleanTx(t) {
+    if (!t || typeof t !== 'object') return null;
+    var ts = toTs(t.ts); if (isNaN(ts)) return null;
+    var base = { id: String(t.id == null ? '' : t.id), type: t.type, ts: ts, note: t.note || '' };
+    if (t.type === 'sale') {
+      var items = Array.isArray(t.items) ? t.items : [], rev = 0, cogs = 0, units = 0;
+      items.forEach(function (it) { it = it || {}; var q = num(it.qty); rev += num(it.price) * q; cogs += num(it.cost) * q; units += q; });
+      base.items = items;
+      base.revenue = hasNum(t.revenue) ? Number(t.revenue) : rev;
+      base.cogs = hasNum(t.cogs) ? Number(t.cogs) : cogs;
+      base.units = hasNum(t.units) ? Number(t.units) : units;
+      return base;
+    }
+    if (t.type === 'expense') {
+      base.amount = num(t.amount); base.category = String(t.category || 'Lainnya'); base.desc = String(t.desc || base.category);
+      return base;
+    }
+    return null;
+  }
+  function txList() {
+    var out = [], raw = get().tx;
+    for (var i = 0; i < raw.length; i++) { var c = cleanTx(raw[i]); if (c) out.push(c); }
+    return out;
+  }
+  function sumOf(list, k) { var n = 0; for (var i = 0; i < list.length; i++) n += list[i][k]; return n; }
+  // from/to = batas inklusif dalam ms (waktu lokal), mis. dari Mantou.range()
+  function summarize(from, to, list) {
+    var all = list || txList(), sales = [], exps = [];
+    all.forEach(function (t) {
+      if (t.ts < from || t.ts > to) return;
+      if (t.type === 'sale') sales.push(t); else if (t.type === 'expense') exps.push(t);
+    });
+    var revenue = sumOf(sales, 'revenue'), cogs = sumOf(sales, 'cogs'), opex = sumOf(exps, 'amount'), gross = revenue - cogs;
+    return { sales: sales, expenses: exps, saleCount: sales.length, expenseCount: exps.length, units: sumOf(sales, 'units'),
+             revenue: revenue, cogs: cogs, gross: gross, opex: opex, net: gross - opex };
+  }
 
   g.Mantou = { get: get, find: find, status: status, addProduct: addProduct, updateProduct: updateProduct, removeProduct: removeProduct,
                addStockIn: addStockIn, adjustStock: adjustStock, voidMove: voidMove, soldUnits: soldUnits, range: range, analyze: analyze, suggestDiscount: suggestDiscount, discounted: discounted, applyPrice: applyPrice, revertPromo: revertPromo, extraCostHint: extraCostHint, addSale: addSale, addExpense: addExpense, voidTx: voidTx, reset: reset, clear: clear,
+               txList: txList, summarize: summarize, setUser: setUser, getUser: getUser, num: num,
                summary: summary, shortName: shortName, onChange: onChange, fmt: fmt };
 })(window);

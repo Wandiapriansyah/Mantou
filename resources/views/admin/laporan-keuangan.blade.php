@@ -18,10 +18,10 @@
   </div>
 
   <section class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-    <x-ui.stat-card id="kRev" label="Pendapatan penjualan" icon="arrow-down-left" caption="Total 0 catatan penjualan" />
-    <x-ui.stat-card id="kCogs" label="Harga pokok terjual (HPP)" icon="box" caption="Biaya perolehan produk yang terjual" hint="HPP: modal barang yang terjual." />
-    <x-ui.stat-card id="kOpex" label="Beban operasional" icon="arrow-up-right" caption="Biaya usaha di luar HPP · 0 catatan" />
-    <x-ui.stat-card id="kNet" label="Laba bersih tercatat" icon="chart-line" caption="Rp0 – Rp0" hint="Laba kotor dikurangi biaya operasional." highlight />
+    <x-ui.stat-card id="kRev" label="Pendapatan penjualan" caption="Total 0 catatan penjualan" />
+    <x-ui.stat-card id="kCogs" label="Harga pokok terjual (HPP)" caption="Biaya perolehan produk yang terjual" hint="HPP: modal barang yang terjual." />
+    <x-ui.stat-card id="kOpex" label="Beban operasional" caption="Biaya usaha di luar HPP · 0 catatan" />
+    <x-ui.stat-card id="kNet" label="Laba bersih tercatat" caption="Rp0 – Rp0" hint="Laba kotor dikurangi biaya operasional." highlight />
   </section>
 
   <div class="mt-5 grid gap-5 xl:grid-cols-[1.35fr_1fr]">

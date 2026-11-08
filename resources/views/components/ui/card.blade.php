@@ -21,7 +21,7 @@
     ];
 @endphp
 
-<section {{ $attributes->class(['border', $radii[$radius], $tones[$tone], 'overflow-hidden' => $flush, $padding => ! $flush]) }}>
+<section {{ $attributes->class(['min-w-0 border', $radii[$radius], $tones[$tone], 'overflow-hidden' => $flush, $padding => ! $flush]) }}>
   @if ($title)
     <div @class(['flex flex-wrap items-start justify-between gap-3', 'p-6 pb-5' => $flush])>
       <div>

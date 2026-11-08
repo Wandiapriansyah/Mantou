@@ -25,7 +25,7 @@
           <x-forms.input id="saleTs" type="datetime-local" label="Tanggal & waktu penjualan" />
           <div>
             <label class="text-[12px] font-bold">Dicatat oleh</label>
-            <div class="mt-2 flex items-center rounded-lg border border-line bg-surface px-3.5 py-3 text-[14px] text-muted">Bu Ratna · Pemilik</div>
+            <div class="mt-2 flex items-center rounded-lg border border-line bg-surface px-3.5 py-3 text-[14px] text-muted" data-mantou-user>Pengguna</div>
           </div>
         </div>
         <div class="mt-6 hidden grid-cols-[1fr_88px_90px_130px] gap-x-4 pb-3 text-[12px] text-muted sm:grid">
@@ -43,7 +43,7 @@
           </div>
           <p id="saleTotal" class="text-[34px] font-bold tracking-tight">Rp0</p>
         </div>
-        <x-ui.alert class="mt-5" icon="info" title="Apa yang terjadi setelah disimpan?" id="saleInfo">Pilih produk dan jumlahnya untuk melihat dampaknya pada stok dan laporan.</x-ui.alert>
+        <x-ui.alert variant="info" class="mt-5" icon="info" title="Apa yang terjadi setelah disimpan?" id="saleInfo">Pilih produk dan jumlahnya untuk melihat dampaknya pada stok dan laporan.</x-ui.alert>
         <x-ui.alert variant="error" id="saleErr" class="mt-4" />
         <x-ui.alert variant="success" id="saleDone" class="mt-4" />
         <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
@@ -63,7 +63,7 @@
           <x-forms.input id="expTs" type="datetime-local" label="Tanggal & waktu pengeluaran" />
           <div>
             <label class="text-[12px] font-bold">Dicatat oleh</label>
-            <div class="mt-2 flex items-center rounded-lg border border-line bg-surface px-3.5 py-3 text-[14px] text-muted">Bu Ratna · Pemilik</div>
+            <div class="mt-2 flex items-center rounded-lg border border-line bg-surface px-3.5 py-3 text-[14px] text-muted" data-mantou-user>Pengguna</div>
           </div>
           <div>
             <x-forms.select id="expCat" label="Kategori" size="md" class="w-full" :options="['' => 'Pilih kategori…', 'Ongkos angkut' => 'Ongkos angkut', 'Listrik & air' => 'Listrik & air', 'Sewa tempat' => 'Sewa tempat', 'Upah pekerja' => 'Upah pekerja', 'Kemasan & plastik' => 'Kemasan & plastik', 'Perlengkapan' => 'Perlengkapan', 'Lainnya' => 'Lainnya']" />
@@ -72,7 +72,7 @@
         </div>
         <x-forms.input id="expDesc" label="Keterangan (opsional)" container="mt-4" maxlength="80" placeholder="Contoh: ongkos angkut dari pasar" />
         <x-forms.input id="expNote" label="Catatan tambahan (opsional)" container="mt-4" maxlength="120" />
-        <x-ui.alert class="mt-5" icon="info" title="Apa yang terjadi setelah disimpan?" id="expInfo">Isi kategori dan jumlah untuk melihat dampaknya pada laporan.</x-ui.alert>
+        <x-ui.alert variant="info" class="mt-5" icon="info" title="Apa yang terjadi setelah disimpan?" id="expInfo">Isi kategori dan jumlah untuk melihat dampaknya pada laporan.</x-ui.alert>
         <x-ui.alert variant="error" id="expErr" class="mt-4" />
         <x-ui.alert variant="success" id="expDone" class="mt-4" />
         <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
@@ -256,7 +256,7 @@
         var sale = t.type === 'sale';
         return '<li class="py-4' + (i ? ' border-t border-line' : '') + '"><div class="flex items-center justify-between"><span class="inline-block rounded-md px-2.5 py-1 text-[12px] font-bold ' + (sale ? 'bg-tint text-brand-dark' : 'bg-line text-muted') + '">' + (sale ? 'Penjualan' : 'Pengeluaran') + '</span><span class="text-[12px] text-muted">' + stamp(t.ts) + ' · ' + t.id + '</span></div>' +
           '<div class="mt-2.5 flex items-center justify-between gap-3 text-[13px] font-bold"><span class="min-w-0 truncate">' + esc(M.summary(t)) + '</span><span class="shrink-0">' + rp(sale ? t.revenue : t.amount) + '</span></div>' +
-          '<div class="mt-1.5 text-right"><button type="button" data-void="' + t.id + '" class="text-[12px] font-semibold text-muted hover:text-danger-dark">Batalkan</button></div></li>';
+          '<div class="mt-1.5 text-right"><button type="button" data-void="' + t.id + '" class="-mr-2 rounded-md px-2 py-1.5 text-[12px] font-semibold text-muted hover:bg-danger-bg hover:text-danger-dark">Batalkan</button></div></li>';
       }).join('') : '<li class="py-6 text-[12px] text-muted">Catatan yang disimpan akan muncul di sini.</li>';
     }
     $('recent').addEventListener('click', function (e) {

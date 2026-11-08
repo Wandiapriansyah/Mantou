@@ -15,6 +15,7 @@
         'sprout' => '<path d="M12 21v-8"/><path d="M12 13c0-3.5-2.5-5.5-6-5.5 0 3.5 2.5 5.5 6 5.5z"/><path d="M12 15c0-3 2-5 5.5-5 0 3-2 5-5.5 5z"/>',
         'external-link' => '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/>',
         'logout' => '<path d="M9 4H5a1 1 0 00-1 1v14a1 1 0 001 1h4M15 8l4 4-4 4M19 12H9"/>',
+        'sidebar' => '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9.5 5v14"/>',
         'bell' => '<path d="M6 16V11a6 6 0 1112 0v5l1.5 2h-15L6 16z"/><path d="M10 21h4"/>',
         'list' => '<path d="M4 7h16M7 12h10M10 17h4"/>',
         'arrow-up-right' => '<path d="M7 17L17 7M9 7h8v8"/>',

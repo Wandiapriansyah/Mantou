@@ -1,14 +1,15 @@
-@props(['title', 'home' => '/dasboard'])
+@props(['title', 'group' => null])
 
-<header class="flex h-[65px] items-center justify-between border-b border-line bg-surface px-5 sm:px-8">
-  <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-[12px] text-muted">
-    <a href="{{ $home }}" class="flex items-center gap-2 hover:text-brand-dark"><x-ui.icon name="store" size="size-4" />Ruang usaha</a>
-    <span>/</span>
-    <span class="font-bold text-ink">{{ $title }}</span>
+<header class="flex h-14 items-center gap-3 border-b border-line bg-surface px-5 sm:px-8">
+  <button type="button" id="sidebarToggle" aria-controls="sidebar" aria-expanded="true" aria-label="Ciutkan sidebar" title="Ciutkan sidebar"
+          class="-ml-2 hidden size-9 place-items-center rounded-lg text-muted hover:bg-tint hover:text-brand-dark lg:grid">
+    <x-ui.icon name="sidebar" />
+  </button>
+  <nav aria-label="Breadcrumb" class="flex min-w-0 items-center gap-2 text-[13px] text-muted">
+    @if ($group)
+      <span class="truncate">{{ $group }}</span>
+      <span aria-hidden="true">/</span>
+    @endif
+    <span class="truncate font-bold text-ink" aria-current="page">{{ $title }}</span>
   </nav>
-  <div class="flex items-center gap-4 text-[12px] text-muted">
-    <x-ui.badge class="hidden sm:inline">Data contoh</x-ui.badge>
-    <span class="hidden sm:inline">Minggu, 7 Juni 2026</span>
-    <button type="button" aria-label="Notifikasi" class="hover:text-brand-dark"><x-ui.icon name="bell" size="size-[18px]" /></button>
-  </div>
 </header>

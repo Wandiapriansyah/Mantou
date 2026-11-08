@@ -4,7 +4,7 @@
     <x-forms.button id="btnAdd" variant="primary" icon="plus">Tambah produk</x-forms.button>
   </x-layouts.page-header>
 
-  <section id="kpis" class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"></section>
+  <section id="kpis" class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4" aria-label="Ringkasan stok"></section>
 
   <x-ui.card class="mt-5" flush>
     <div class="p-6 pb-5">
@@ -27,13 +27,13 @@
         <x-forms.select id="fSts" aria-label="Status stok" :options="['' => 'Semua status', 'habis' => 'Habis', 'rendah' => 'Rendah', 'cukup' => 'Cukup']" />
       </div>
     </div>
-    <x-ui.table :headers="['Produk', 'Barcode', 'Kategori', ['Biaya perolehan', 'right'], ['Harga jual', 'right'], ['Stok', 'right'], 'Status stok', ['Aksi', 'right']]" body-id="rows" :min-width="980" />
+    <x-ui.table :headers="['Produk', ['Barcode', 'left', 'hidden md:table-cell'], ['Kategori', 'left', 'hidden md:table-cell'], ['Biaya perolehan', 'right', 'hidden md:table-cell'], ['Harga jual', 'right'], ['Stok', 'right'], 'Status stok', ['Aksi', 'right']]" body-id="rows" :min-width="980" :md-min-width="980" />
     <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line px-6 py-4 text-[12px] text-muted">
       <span id="foot"></span>
       <span class="flex items-center gap-3">
-        <button type="button" id="prev" class="font-bold text-brand-dark disabled:line-through">Sebelumnya</button>
+        <button type="button" id="prev" class="rounded-lg border border-line px-4 py-2 font-bold text-brand-dark disabled:cursor-not-allowed disabled:opacity-40">Sebelumnya</button>
         <span id="pg" class="grid size-8 place-items-center rounded-md bg-tint font-bold text-brand-dark">1</span>
-        <button type="button" id="next" class="rounded-lg border border-line px-4 py-2 font-bold text-brand-dark disabled:line-through">Berikutnya</button>
+        <button type="button" id="next" class="rounded-lg border border-line px-4 py-2 font-bold text-brand-dark disabled:cursor-not-allowed disabled:opacity-40">Berikutnya</button>
       </span>
     </div>
   </x-ui.card>
@@ -93,14 +93,11 @@
               (hl
                   ? "border-brand bg-tint"
                   : "border-line bg-surface") +
-              ' p-5"><div class="flex items-center justify-between text-[12px] text-muted"><span>' +
+              ' p-4 sm:p-5"><div class="text-[12px] text-muted">' +
               label +
-              '</span><span class="text-brand-dark">' +
-              ICON +
-              icon +
-              '</svg></span></div><p class="mt-4 text-[28px] font-bold leading-none tracking-tight text-ink">' +
+              '</div><p class="mt-3 break-words text-[22px] font-bold leading-none tracking-tight text-ink sm:text-[28px]">' +
               val +
-              '</p><p class="mt-4 text-[12px] text-muted">' +
+              '</p><p class="mt-3 text-[12px] text-muted">' +
               cap +
               "</p></div>"
           );
@@ -186,7 +183,7 @@
                   })
                   .join("");
       }
-      var ACT = "font-semibold text-muted hover:text-brand-dark";
+      var ACT = "rounded-md px-2 py-2 font-semibold text-muted hover:bg-tint hover:text-brand-dark";
       function renderRows(P) {
           var list = filtered(P),
               pages = Math.max(1, Math.ceil(list.length / PER));
@@ -207,13 +204,13 @@
                             " · minimum " +
                             p.min +
                             "</span></td>" +
-                            '<td class="px-3 py-4 text-[13px]">' +
+                            '<td class="hidden px-3 py-4 text-[13px] md:table-cell">' +
                             (esc(p.barcode) ||
                                 '<span class="text-muted">—</span>') +
-                            '</td><td class="px-3 py-4 text-[13px]">' +
+                            '</td><td class="hidden px-3 py-4 text-[13px] md:table-cell">' +
                             esc(p.category) +
                             "</td>" +
-                            '<td class="px-3 py-4 text-right text-[13px]"><span class="text-muted">' +
+                            '<td class="hidden px-3 py-4 text-right text-[13px] md:table-cell"><span class="text-muted">' +
                             rp(p.cost) +
                             '</span></td><td class="px-3 py-4 text-right text-[13px]">' +
                             rp(p.price) +
@@ -233,21 +230,21 @@
                             '">' +
                             b[1] +
                             "</span></td>" +
-                            '<td class="whitespace-nowrap px-5 py-4 text-right text-[12px]"><button type="button" data-a="edit" data-id="' +
+                            '<td class="px-3 py-3 text-right text-[12px] md:whitespace-nowrap"><button type="button" data-a="edit" data-id="' +
                             p.id +
                             '" class="' +
                             ACT +
-                            '">Ubah</button> · <button type="button" data-a="in" data-id="' +
+                            '">Ubah</button><button type="button" data-a="in" data-id="' +
                             p.id +
                             '" class="' +
                             ACT +
-                            '">Masuk</button> · <button type="button" data-a="adj" data-id="' +
+                            '">Masuk</button><button type="button" data-a="adj" data-id="' +
                             p.id +
                             '" class="' +
                             ACT +
-                            '">Sesuaikan</button> · <button type="button" data-a="del" data-id="' +
+                            '">Sesuaikan</button><button type="button" data-a="del" data-id="' +
                             p.id +
-                            '" class="font-semibold text-muted hover:text-danger-dark">Hapus</button></td></tr>'
+                            '" class="rounded-md px-2 py-2 font-semibold text-danger-dark hover:bg-danger-bg">Hapus</button></td></tr>'
                         );
                     })
                     .join("")

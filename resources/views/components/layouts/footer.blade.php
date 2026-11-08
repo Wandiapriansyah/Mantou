@@ -28,7 +28,7 @@
 </nav>
 
 @if ($more->isNotEmpty())
-  <div id="moreMenu" class="fixed inset-x-3 bottom-[76px] z-40 hidden rounded-xl border border-surface bg-surface/95 p-2 shadow-lg backdrop-blur-sm lg:hidden">
+  <div id="moreMenu" class="fixed inset-x-3 bottom-[76px] z-40 hidden rounded-xl border border-line bg-surface p-2 shadow-lg lg:hidden">
     @foreach ($more as $item)
       <a href="{{ $item['href'] }}" @if ($item['key'] === $active) aria-current="page" @endif @class(['flex items-center gap-3 rounded-lg px-3 py-3', 'bg-tint text-brand-dark' => $item['key'] === $active])>
         <x-ui.icon :name="$item['icon']" />
