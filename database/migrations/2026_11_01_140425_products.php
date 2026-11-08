@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('barcode', 50)->unique();
             $table->string('product_name', 150);
+            $table->string('unit', 100);
             $table->decimal('selling_price', 12, 2)->default(0.00);
             $table->decimal('purchase_price', 12, 2)->default(0.00);
             $table->integer('stock')->default(0);
