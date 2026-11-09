@@ -21,6 +21,7 @@ class StockMovement extends Model
         'stock_after',
         'note',
         'movement_date',
+        'is_voided',
     ];
 
     protected $casts = [
