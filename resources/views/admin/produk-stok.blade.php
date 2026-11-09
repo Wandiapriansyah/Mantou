@@ -941,26 +941,66 @@
           page++;
           renderRows(getData().products);
       };
-      $("rows").addEventListener("click", function (e) {
-          var b = e.target.closest("[data-a]");
-          if (!b) return;
-          var p = findProduct(b.getAttribute("data-id")),
-              a = b.getAttribute("data-a");
-          if (!p) return;
-          if (a === "edit") productForm(p);
-          else if (a === "in") stockInForm(p.id);
-          else if (a === "adj") adjustForm(p.id);
-          else if (
-              confirm(
-                  'Hapus "' +
-                      p.name +
-                      '" dari daftar produk? Riwayat penjualan lama tetap tersimpan.',
-              )
-          ) {
-              M.removeProduct(p.id);
-              toast("Produk dihapus: " + p.name);
-              render();
-          }
+      $("rows").addEventListener("click", async function (e) {
+        var b = e.target.closest("[data-a]");
+        if (!b) return;
+
+        var p = findProduct(b.getAttribute("data-id")),
+            a = b.getAttribute("data-a");
+
+        if (!p) return;
+
+        if (a === "edit") {
+            productForm(p);
+        } else if (a === "in") {
+            stockInForm(p.id);
+        } else if (a === "adj") {
+            adjustForm(p.id);
+        } else if (
+            confirm(
+                'Hapus "' +
+                    p.name +
+                    '" dari daftar produk? Riwayat penjualan lama tetap tersimpan.',
+            )
+        ) {
+            try {
+                var response = await fetch(
+                    "/produk-stok/" + encodeURIComponent(p.id),
+                    {
+                        method: "DELETE",
+                        headers: {
+                            "Accept": "application/json",
+                            "X-CSRF-TOKEN": @json(csrf_token()),
+                        },
+                    }
+                );
+
+                var result = await response.json();
+
+                if (!response.ok) {
+                    var message = result.message || "Produk gagal dihapus.";
+
+                    if (result.errors) {
+                        message = Object.values(result.errors)
+                            .flat()
+                            .join(" ");
+                    }
+
+                    toast(message);
+                    return;
+                }
+
+                state.products = state.products.filter(function (item) {
+                    return String(item.id) !== String(p.id);
+                });
+
+                render();
+                toast("Produk dihapus: " + p.name);
+
+            } catch (error) {
+                toast("Tidak dapat terhubung ke server.");
+            }
+        }
       });
       $("moves").addEventListener("click", function (e) {
           var b = e.target.closest("[data-v]");

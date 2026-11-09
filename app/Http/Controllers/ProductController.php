@@ -194,22 +194,24 @@ class ProductController extends Controller
         ]);
     }
 
-    // Menghapus produk
     public function destroy(Product $product)
     {
         if ($product->stockMovements()->exists()) {
-            return redirect()->route('produk-stok')
-                ->with('error', 'Produk memiliki riwayat stok sehingga tidak dapat dihapus.');
+            return response()->json([
+                'message' => 'Produk memiliki riwayat stok sehingga tidak dapat dihapus.',
+            ], 422);
         }
 
         if ($product->trasaction_details()->exists()) {
-            return redirect()->route('produk-stok')
-                ->with('error', 'Produk memiliki riwayat transaksi sehingga tidak dapat dihapus.');
+            return response()->json([
+                'message' => 'Produk memiliki riwayat transaksi sehingga tidak dapat dihapus.',
+            ], 422);
         }
 
         $product->delete();
 
-        return redirect()->route('produk-stok')
-            ->with('success', 'Produk berhasil dihapus.');
+        return response()->json([
+            'message' => 'Produk berhasil dihapus.',
+        ]);
     }
 }
