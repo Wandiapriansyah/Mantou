@@ -13,13 +13,14 @@
         ['key' => 'index', 'group' => 'Kelola warung', 'href' => '/dashboard', 'label' => 'Ringkasan', 'short' => 'Ringkasan', 'icon' => 'dashboard', 'desc' => 'Kondisi usaha sekilas dari catatan Anda', 'primary' => true, 'roles' => ['admin']],
         ['key' => 'cek-harga', 'group' => 'Kelola warung', 'href' => '/cek-harga', 'label' => 'Cek harga', 'short' => 'Cek harga', 'icon' => 'barcode', 'desc' => 'Lihat harga produk, tanpa mencatat penjualan', 'primary' => true, 'roles' => ['admin', 'worker']],
         ['key' => 'produk-stok', 'group' => 'Kelola warung', 'href' => '/produk-stok', 'label' => 'Produk & stok', 'short' => 'Produk', 'icon' => 'box', 'desc' => 'Harga tersimpan dan persediaan barang', 'primary' => true, 'roles' => ['admin']],
-        ['key' => 'catatan-transaksi', 'group' => 'Kelola warung', 'href' => '/catatan-transaksi', 'label' => 'Catatan transaksi', 'short' => 'Transaksi', 'icon' => 'document', 'desc' => 'Catat penjualan dan pengeluaran harian', 'primary' => true, 'roles' => ['admin', 'worker']],
+        ['key' => 'catatan-transaksi', 'group' => 'Kelola warung', 'href' => '/catatan-transaksi', 'label' => 'Catatan transaksi', 'short' => 'Transaksi', 'icon' => 'document', 'desc' => 'Catat penjualan dan pengeluaran harian', 'primary' => true, 'roles' => ['admin']],
         ['key' => 'laporan-keuangan', 'group' => 'Kelola warung', 'href' => '/laporan-keuangan', 'label' => 'Laporan keuangan', 'short' => 'Laporan', 'icon' => 'chart-line', 'desc' => 'Pendapatan, HPP, beban, dan laba bersih', 'primary' => false, 'roles' => ['admin']],
         ['key' => 'analisis-harga', 'group' => 'Wawasan usaha', 'href' => '/analisis-harga', 'label' => 'Analisis harga', 'short' => 'Harga', 'icon' => 'calculator', 'desc' => 'Hitung harga jual dari modal dan target laba', 'primary' => false, 'roles' => ['admin']],
         ['key' => 'analisis-stok-penjualan', 'group' => 'Wawasan usaha', 'href' => '/analisis-stok-penjualan', 'label' => 'Analisis stok & penjualan', 'short' => 'Penjualan', 'icon' => 'bars', 'desc' => 'Produk cepat dan lambat laku', 'primary' => false, 'roles' => ['admin']],
         ['key' => 'rekomendasi-diskon', 'group' => 'Wawasan usaha', 'href' => '/rekomendasi-diskon', 'label' => 'Rekomendasi diskon', 'short' => 'Diskon', 'icon' => 'discount', 'desc' => 'Saran diskon untuk stok yang lambat laku', 'primary' => false, 'roles' => ['admin']],
     ])->filter(fn ($item) => in_array($role, $item['roles']))->values();
 
+    // penjaga hanya melihat menu yang berperan 'worker' (saat ini: Cek harga); semuanya tampil di bottom nav
     if ($role === 'worker') {
         $menu = $menu->map(fn ($item) => [...$item, 'primary' => true])->sortBy(fn ($item) => array_search($item['key'], $workerOrder))->values();
     }

@@ -18,6 +18,8 @@
 <script>
 (function () {
   const CAN_ADD = @json($canAdd);
+  const getCatalog = () => Mantou.get().products.map((p) => ({ id: p.id, barcode: p.barcode, name: p.name, category: p.category, price: p.price, unit: p.unit, stock: p.stock, min: p.min, updated: Mantou.fmt.longDate(p.upd) }));
+
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const rupiah = (n) => 'Rp' + Number(n).toLocaleString('id-ID');
