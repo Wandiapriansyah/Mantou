@@ -1104,24 +1104,58 @@
             }
         }
       });
-      $("moves").addEventListener("click", function (e) {
-          var b = e.target.closest("[data-v]");
-          if (!b) return;
-          var id = b.getAttribute("data-v");
-          if (
-              !confirm(
-                  "Batalkan catatan stok " +
-                      id +
-                      "? Stok produk dikembalikan seperti sebelumnya.",
-              )
-          )
-              return;
-          var r = M.voidMove(id);
-          if (r.ok) {
-              toast("Catatan " + id + " dibatalkan");
-              render();
-          } else alert(r.error);
-      });
+    $("moves").addEventListener("click", async function (e) {
+        var b = e.target.closest("[data-v]");
+        if (!b) return;
+
+        var id = b.getAttribute("data-v");
+
+        if (
+            !confirm(
+                "Batalkan catatan stok " +
+                    id +
+                    "? Stok produk dikembalikan seperti sebelumnya."
+            )
+        ) {
+            return;
+        }
+
+        try {
+            var response = await fetch("/produk-stok/void-move", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": @json(csrf_token()),
+                },
+                body: JSON.stringify({
+                    id: id,
+                }),
+            });
+
+            var result = await response.json();
+
+            if (!response.ok) {
+                var message = result.message || "Gagal membatalkan catatan stok.";
+
+                if (result.errors) {
+                    message = Object.values(result.errors).flat().join(" ");
+                }
+
+                alert(message);
+                return;
+            }
+
+            toast("Catatan " + id + " berhasil dibatalkan");
+
+            // Muat ulang halaman agar stok dan riwayat
+            // mengikuti data terbaru dari database.
+            window.location.reload();
+
+        } catch (error) {
+            alert("Tidak dapat terhubung ke server.");
+        }
+    });
       M.onChange(render);
       window.addEventListener("pageshow", render);
 

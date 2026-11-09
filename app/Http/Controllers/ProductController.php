@@ -363,6 +363,84 @@ class ProductController extends Controller
         ]);
     }
 
+    public function voidMove(Request $request)
+    {
+        $data = $request->validate([
+            'id' => 'required|integer|exists:stock_movements,id',
+        ]);
+
+        $result = DB::transaction(function () use ($data) {
+            $movement = StockMovement::lockForUpdate()
+                ->findOrFail($data['id']);
+
+            if ($movement->is_voided) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'id' => 'Catatan stok ini sudah pernah dibatalkan.',
+                ]);
+            }
+
+            if (!in_array($movement->type, ['in', 'adjustment'])) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'id' => 'Jenis catatan stok ini tidak dapat dibatalkan melalui fitur ini.',
+                ]);
+            }
+
+            $product = Product::lockForUpdate()
+                ->findOrFail($movement->product_id);
+
+            $before = (int) $product->stock;
+
+            // Pastikan stok saat ini masih sesuai dengan kondisi
+            // setelah transaksi yang akan dibatalkan.
+            if ($before !== (int) $movement->stock_after) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'id' => 'Stok produk sudah berubah sejak transaksi ini. Pembatalan tidak dapat dilakukan.',
+                ]);
+            }
+
+            $after = (int) $movement->stock_before;
+
+            if ($after < 0) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'id' => 'Pembatalan akan menyebabkan stok negatif.',
+                ]);
+            }
+
+            $product->stock = $after;
+            $product->save();
+
+            $movement->is_voided = true;
+            $movement->save();
+
+            $reversal = StockMovement::create([
+                'product_id' => $product->id,
+                'user_id' => Auth::id(),
+                'type' => 'adjustment',
+                'quantity' => $after - $before,
+                'stock_before' => $before,
+                'stock_after' => $after,
+                'note' => 'Pembatalan catatan stok #' . $movement->id,
+                'movement_date' => now(),
+            ]);
+
+            return [
+                'product' => $product,
+                'movement' => $movement,
+                'reversal' => $reversal,
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Catatan stok berhasil dibatalkan.',
+            'product' => [
+                'id' => $result['product']->id,
+                'stock' => (int) $result['product']->stock,
+            ],
+            'movement_id' => $result['movement']->id,
+            'reversal_id' => $result['reversal']->id,
+        ]);
+    }
+
     public function destroy(Product $product)
     {
         if ($product->stockMovements()->exists()) {
