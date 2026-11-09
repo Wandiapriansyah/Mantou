@@ -194,6 +194,90 @@ class ProductController extends Controller
         ]);
     }
 
+    
+    public function stockIn(Request $request)
+    {
+        $data = $request->validate([
+            'pid' => 'required|exists:products,id',
+            'qty' => 'required|integer|min:1',
+            'cost' => 'nullable|numeric|min:0',
+            'ts' => 'required|numeric|gt:0',
+            'note' => 'nullable|string|max:255',
+        ]);
+
+        $movementDate = \Carbon\Carbon::createFromTimestampMs(
+            (int) $data['ts']
+        );
+
+        if ($movementDate->gt(now()->addMinute())) {
+            return response()->json([
+                'message' => 'Waktu tidak boleh di masa depan.',
+            ], 422);
+        }
+
+        $result = DB::transaction(function () use ($data, $movementDate) {
+            $product = Product::with('category')
+                ->lockForUpdate()
+                ->findOrFail($data['pid']);
+
+            $before = (int) $product->stock;
+            $qty = (int) $data['qty'];
+
+            $product->stock = $before + $qty;
+
+            if (isset($data['cost']) && $data['cost'] !== '') {
+                $product->purchase_price = $data['cost'];
+            }
+
+            $product->save();
+
+            $movement = StockMovement::create([
+                'product_id' => $product->id,
+                'user_id' => Auth::id(),
+                'type' => 'in',
+                'quantity' => $qty,
+                'stock_before' => $before,
+                'stock_after' => $product->stock,
+                'note' => $data['note'] ?? '',
+                'movement_date' => $movementDate,
+            ]);
+
+            return [
+                'product' => $product,
+                'movement' => $movement,
+            ];
+        });
+
+        $product = $result['product'];
+        $movement = $result['movement'];
+
+        return response()->json([
+            'message' => 'Barang masuk berhasil dicatat.',
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->product_name,
+                'barcode' => $product->barcode,
+                'unit' => $product->unit,
+                'category' => $product->category->category_name ?? '',
+                'cost' => (float) $product->purchase_price,
+                'price' => (float) $product->selling_price,
+                'stock' => (int) $product->stock,
+                'min' => (int) $product->minimum_stock,
+                'promo' => null,
+            ],
+            'move' => [
+                'id' => $movement->id,
+                'type' => $movement->type,
+                'qty' => (int) $movement->quantity,
+                'ts' => $movement->movement_date->timestamp * 1000,
+                'name' => $product->product_name,
+                'before' => (int) $movement->stock_before,
+                'after' => (int) $movement->stock_after,
+                'note' => $movement->note,
+            ],
+        ]);
+    }
+
     public function destroy(Product $product)
     {
         if ($product->stockMovements()->exists()) {

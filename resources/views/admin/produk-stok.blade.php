@@ -831,33 +831,81 @@
                       "",
                       'type="text" placeholder="Mis. dari pemasok A"',
                   ),
-              "Simpan barang masuk",
-              function () {
-                  var ts = M.fmt.parseDT(v("iTs"));
-                  if (ts > Date.now() + 60000)
-                      return {
-                          ok: false,
-                          error: "Waktu tidak boleh di masa depan.",
-                      };
-                  var r = M.addStockIn({
-                      pid: v("iPid"),
-                      qty: v("iQty"),
-                      cost: v("iCost"),
-                      ts: ts,
-                      note: v("iNote").trim(),
-                  });
-                  if (r.ok) {
-                      toast(
-                          r.product.name +
-                              " bertambah " +
-                              r.move.qty +
-                              " · stok " +
-                              r.product.stock,
-                      );
-                      render();
-                  }
-                  return r;
-              },
+              "Simpan barang masuk",               
+                async function () {
+                    var ts = M.fmt.parseDT(v("iTs"));
+
+                    if (ts > Date.now() + 60000) {
+                        return {
+                            ok: false,
+                            error: "Waktu tidak boleh di masa depan.",
+                        };
+                    }
+
+                    try {
+                        var response = await fetch("/produk-stok/stock-in", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "X-CSRF-TOKEN": @json(csrf_token()),
+                            },
+                            body: JSON.stringify({
+                                pid: v("iPid"),
+                                qty: v("iQty"),
+                                cost: v("iCost") === "" ? null : v("iCost"),
+                                ts: ts,
+                                note: v("iNote").trim(),
+                            }),
+                        });
+
+                        var result = await response.json();
+
+                        if (!response.ok) {
+                            return {
+                                ok: false,
+                                error: result.message || "Gagal mencatat barang masuk.",
+                            };
+                        }
+
+                        var product = result.product;
+                        var move = result.move;
+
+                        var index = state.products.findIndex(function (item) {
+                            return String(item.id) === String(product.id);
+                        });
+
+                        if (index !== -1) {
+                            state.products[index] = product;
+                        }
+
+                        if (move) {
+                            state.moves.unshift(move);
+                        }
+
+                        toast(
+                            product.name +
+                                " bertambah " +
+                                move.qty +
+                                " · stok " +
+                                product.stock
+                        );
+
+                        render();
+
+                        return {
+                            ok: true,
+                            product: product,
+                            move: move,
+                        };
+
+                    } catch (error) {
+                        return {
+                            ok: false,
+                            error: "Tidak dapat terhubung ke server.",
+                        };
+                    }
+                },
           );
       }
       function adjustForm(pid) {
