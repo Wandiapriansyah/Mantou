@@ -1,15 +1,23 @@
+@props(['canAdd' => true])
+
 <div class="flex flex-col gap-5">
   <div id="result" aria-live="polite"></div>
 
   <x-ui.card radius="2xl" title="Produk belum terdaftar?">
-    <p class="mt-2 text-[12px] leading-relaxed text-muted">Hanya produk terdaftar yang dapat dicari. Pemilik atau pengguna berizin dapat menambahkan produk baru.</p>
-    <x-forms.button href="/produk-stok" icon="plus" class="mt-4">Tambah produk</x-forms.button>
+    @if ($canAdd)
+      <p class="mt-2 text-[12px] leading-relaxed text-muted">Hanya produk terdaftar yang dapat dicari. Pemilik atau pengguna berizin dapat menambahkan produk baru.</p>
+      <x-forms.button href="/produk-stok" icon="plus" class="mt-4">Tambah produk</x-forms.button>
+    @else
+      <p class="mt-2 text-[12px] leading-relaxed text-muted">Hanya produk terdaftar yang dapat dicari. Hanya pemilik warung yang dapat menambahkan produk baru.</p>
+      <x-forms.button type="button" icon="plus" class="mt-4 cursor-not-allowed opacity-50 hover:border-line" disabled aria-disabled="true" title="Hanya pemilik yang dapat menambah produk">Tambah produk</x-forms.button>
+    @endif
   </x-ui.card>
 </div>
 
 @push('scripts')
 <script>
 (function () {
+  const CAN_ADD = @json($canAdd);
   const getCatalog = () => Mantou.get().products.map((p) => ({ id: p.id, barcode: p.barcode, name: p.name, category: p.category, price: p.price, unit: p.unit, stock: p.stock, min: p.min, updated: Mantou.fmt.longDate(p.upd) }));
 
   const $ = (id) => document.getElementById(id);
@@ -52,8 +60,8 @@
         <p class="mt-2 break-all text-[22px] font-bold leading-tight tracking-tight">${esc(q)}</p>
         <div class="mt-5 rounded-xl border border-warning bg-warn-bg p-5">
           <p class="text-[13px] font-bold text-warn">Belum terdaftar di warung ini</p>
-          <p class="mt-1.5 text-[12px] leading-relaxed text-warn">Periksa kembali barcode atau coba pindai ulang. Jika produk memang baru, tambahkan lewat Produk &amp; stok.</p>
-          <a href="/produk-stok?aksi=tambah&${/^\d{6,}$/.test(q.replace(/[\s-]/g, '')) ? 'barcode=' : 'nama='}${encodeURIComponent(q)}" class="mt-3 inline-block text-[12px] font-bold text-brand-dark hover:underline">Tambah produk ini →</a>
+          <p class="mt-1.5 text-[12px] leading-relaxed text-warn">Periksa kembali barcode atau coba pindai ulang. ${CAN_ADD ? 'Jika produk memang baru, tambahkan lewat Produk &amp; stok.' : 'Jika produk memang baru, minta pemilik warung untuk menambahkannya.'}</p>
+          ${CAN_ADD ? `<a href="/produk-stok?aksi=tambah&${/^\d{6,}$/.test(q.replace(/[\s-]/g, '')) ? 'barcode=' : 'nama='}${encodeURIComponent(q)}" class="mt-3 inline-block text-[12px] font-bold text-brand-dark hover:underline">Tambah produk ini →</a>` : ''}
         </div>
       </section>`;
   }
@@ -92,7 +100,7 @@
 
         <div class="mt-5 flex items-center justify-between border-t border-line pt-4 text-[12px] text-muted">
           <span>Harga diperbarui ${esc(p.updated)}</span>
-          <a href="/produk-stok?cari=${encodeURIComponent(p.barcode || p.name)}" class="text-[12px] font-bold text-brand-dark hover:underline">Lihat detail produk →</a>
+          ${CAN_ADD ? `<a href="/produk-stok?cari=${encodeURIComponent(p.barcode || p.name)}" class="text-[12px] font-bold text-brand-dark hover:underline">Lihat detail produk →</a>` : ''}
         </div>
         ${others ? `<div class="mt-5 border-t border-line pt-4"><p class="mb-2.5 text-[12px] font-semibold text-muted">Hasil lain</p><div class="flex flex-col gap-2">${others}</div></div>` : ''}
       </section>`;

@@ -1,11 +1,11 @@
 <x-layouts.app title="Cek harga" active="cek-harga" role="worker">
   <x-layouts.page-header title="Cek harga" subtitle="Temukan harga yang ditetapkan pemilik, cukup dengan barcode produk." />
 
-  <x-ui.alert variant="info" class="mt-6" icon="barcode" title="Cek harga bukan pencatatan penjualan">Memindai produk hanya menampilkan harga. Untuk mencatat penjualan dan mengurangi stok, buka <a href="/catatan-transaksi" class="font-semibold text-brand-dark underline">Catatan transaksi</a>.</x-ui.alert>
+  <x-ui.alert variant="info" class="mt-6" icon="barcode" title="Cek harga bukan pencatatan penjualan">Memindai produk hanya menampilkan harga. Untuk mencatat penjualan dan mengurangi stok, buka <span class="cursor-not-allowed font-semibold text-faint underline decoration-dotted" role="link" aria-disabled="true" title="Hanya pemilik yang dapat mencatat transaksi">Catatan transaksi</span> (khusus pemilik warung).</x-ui.alert>
 
   <div class="mt-5 grid items-start gap-5 xl:grid-cols-[1.45fr_1fr]">
     <x-widgets.barcode-scanner />
-    <x-widgets.price-check-result />
+    <x-widgets.price-check-result :can-add="false" />
   </div>
 
   <p class="mt-6 flex items-center gap-2 text-[12px] text-muted">
