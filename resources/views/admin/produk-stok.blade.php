@@ -934,32 +934,86 @@
                       'type="text" placeholder="Rusak, hilang, salah hitung…"',
                   ),
               "Simpan penyesuaian",
-              function () {
-                  var ts = M.fmt.parseDT(v("aTs"));
-                  if (ts > Date.now() + 60000)
-                      return {
-                          ok: false,
-                          error: "Waktu tidak boleh di masa depan.",
-                      };
-                  var r = M.adjustStock({
-                      pid: v("aPid"),
-                      counted: v("aCnt"),
-                      ts: ts,
-                      note: v("aNote"),
-                  });
-                  if (r.ok) {
-                      toast(
-                          "Stok " +
-                              r.product.name +
-                              " disesuaikan: " +
-                              r.move.before +
-                              " → " +
-                              r.move.after,
-                      );
-                      render();
-                  }
-                  return r;
-              },
+                async function () {
+                    var ts = M.fmt.parseDT(v("aTs"));
+
+                    if (ts > Date.now() + 60000) {
+                        return {
+                            ok: false,
+                            error: "Waktu tidak boleh di masa depan.",
+                        };
+                    }
+
+                    try {
+                        var response = await fetch("/produk-stok/stock-adjust", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "X-CSRF-TOKEN": @json(csrf_token()),
+                            },
+                            body: JSON.stringify({
+                                pid: v("aPid"),
+                                counted: v("aCnt"),
+                                ts: ts,
+                                note: v("aNote").trim(),
+                            }),
+                        });
+
+                        var result = await response.json();
+
+                        if (!response.ok) {
+                            var message = result.message || "Gagal melakukan penyesuaian stok.";
+
+                            if (result.errors) {
+                                message = Object.values(result.errors).flat().join(" ");
+                            }
+
+                            return {
+                                ok: false,
+                                error: message,
+                            };
+                        }
+
+                        var product = result.product;
+                        var move = result.move;
+
+                        var index = state.products.findIndex(function (item) {
+                            return String(item.id) === String(product.id);
+                        });
+
+                        if (index !== -1) {
+                            state.products[index] = product;
+                        }
+
+                        if (move) {
+                            state.moves.unshift(move);
+                        }
+
+                        toast(
+                            "Stok " +
+                                product.name +
+                                " disesuaikan: " +
+                                move.before +
+                                " → " +
+                                move.after
+                        );
+
+                        render();
+
+                        return {
+                            ok: true,
+                            product: product,
+                            move: move,
+                        };
+
+                    } catch (error) {
+                        return {
+                            ok: false,
+                            error: "Tidak dapat terhubung ke server.",
+                        };
+                    }
+                },
           );
       }
 
