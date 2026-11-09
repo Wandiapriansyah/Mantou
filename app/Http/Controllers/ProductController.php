@@ -441,6 +441,53 @@ class ProductController extends Controller
         ]);
     }
 
+    public function searchForPriceCheck(Request $request)
+    {
+        $data = $request->validate([
+            'q' => 'nullable|string|max:150',
+        ]);
+
+        $keyword = trim($data['q'] ?? '');
+
+        $query = Product::with('category');
+
+        if ($keyword !== '') {
+            $query->where(function ($query) use ($keyword) {
+                $query->where('barcode', $keyword)
+                    ->orWhere('product_name', 'like', '%' . $keyword . '%')
+                    ->orWhereHas('category', function ($categoryQuery) use ($keyword) {
+                        $categoryQuery->where(
+                            'category_name',
+                            'like',
+                            '%' . $keyword . '%'
+                        );
+                    });
+            });
+        }
+
+        $products = $query
+            ->latest()
+            ->limit($keyword === '' ? 4 : 20)
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $products->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'barcode' => $product->barcode,
+                    'name' => $product->product_name,
+                    'category' => $product->category->category_name ?? '',
+                    'price' => (float) $product->selling_price,
+                    'unit' => $product->unit,
+                    'stock' => (int) $product->stock,
+                    'min' => (int) $product->minimum_stock,
+                    'updated' => $product->updated_at,
+                ];
+            }),
+        ]);
+    }
+
     public function destroy(Product $product)
     {
         if ($product->stockMovements()->exists()) {

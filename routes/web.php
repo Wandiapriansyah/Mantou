@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
         Route::get('cek-harga', function () {
             return view('admin.cek-harga');
         });
+        Route::post('/cek-harga/search', [ProductController::class, 'searchForPriceCheck'])->name('cek-harga.search');
 
         Route::get('analisis-harga', function () {
             return view('admin.analisis-harga');

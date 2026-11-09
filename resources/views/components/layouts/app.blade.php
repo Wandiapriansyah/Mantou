@@ -30,6 +30,7 @@
 <html lang="id">
 <head>
 <x-layouts.head :title="$title" />
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <script>
   // pulihkan preferensi sidebar sebelum render pertama agar tidak berkedip
   (function () {
