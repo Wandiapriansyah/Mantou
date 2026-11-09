@@ -500,32 +500,71 @@
           }
       }
 
-      function open(title, sub, body, okText, onOk) {
-          $("modalBox").innerHTML =
-              '<h2 class="text-[20px] font-semibold">' +
-              title +
-              '</h2><p class="mt-1 text-[12px] text-muted">' +
-              sub +
-              '</p><div class="mt-5 space-y-4">' +
-              body +
-              '</div><p id="mErr" class="mt-4 hidden rounded-lg border border-danger bg-danger-bg px-3 py-2 text-[12px] font-semibold text-warn"></p><div class="mt-6 flex justify-end gap-2.5"><button type="button" id="mCancel" class="rounded-lg border border-line px-4 py-2.5 text-[13px] font-bold hover:border-brand">Batal</button><button type="button" id="mOk" class="rounded-lg bg-brand px-4 py-2.5 text-[13px] font-bold text-surface hover:bg-brand-dark">' +
-              okText +
-              "</button></div>";
-          $("modal").classList.remove("hidden");
-          $("modal").classList.add("flex");
-          $("mCancel").onclick = close;
-          $("mOk").onclick = function () {
-              var r = onOk();
-              if (r && !r.ok) {
-                  $("mErr").textContent = r.error;
-                  $("mErr").classList.remove("hidden");
-              } else {
-                  close();
-              }
-          };
-          var f = $("modalBox").querySelector("input,select");
-          if (f) f.focus();
-      }
+
+        function open(title, sub, body, okText, onOk) {
+            $("modalBox").innerHTML =
+                '<h2 class="text-[20px] font-semibold">' +
+                title +
+                '</h2><p class="mt-1 text-[12px] text-muted">' +
+                sub +
+                '</p><div class="mt-5 space-y-4">' +
+                body +
+                '</div><p id="mErr" class="mt-4 hidden rounded-lg border border-danger bg-danger-bg px-3 py-2 text-[12px] font-semibold text-warn"></p><div class="mt-6 flex justify-end gap-2.5"><button type="button" id="mCancel" class="rounded-lg border border-line px-4 py-2.5 text-[13px] font-bold hover:border-brand">Batal</button><button type="button" id="mOk" class="rounded-lg bg-brand px-4 py-2.5 text-[13px] font-bold text-surface hover:bg-brand-dark">' +
+                okText +
+                "</button></div>";
+
+            $("modal").classList.remove("hidden");
+            $("modal").classList.add("flex");
+
+            $("mCancel").onclick = close;
+
+            $("mOk").onclick = function () {
+                var btn = $("mOk");
+                var err = $("mErr");
+
+                err.classList.add("hidden");
+
+                function showError(message) {
+                    err.textContent = message;
+                    err.classList.remove("hidden");
+                    btn.disabled = false;
+                    btn.textContent = okText;
+                }
+
+                var result;
+
+                try {
+                    result = onOk();
+                } catch (error) {
+                    showError(error.message || "Terjadi kesalahan.");
+                    return;
+                }
+
+                if (result && typeof result.then === "function") {
+                    btn.disabled = true;
+                    btn.textContent = "Menyimpan...";
+
+                    result.then(function (r) {
+                        if (r && !r.ok) {
+                            showError(r.error);
+                        } else {
+                            close();
+                        }
+                    }).catch(function (error) {
+                        showError(error.message || "Gagal menyimpan data.");
+                    });
+
+                } else if (result && !result.ok) {
+                    showError(result.error);
+                } else {
+                    close();
+                }
+            };
+
+            var f = $("modalBox").querySelector("input,select");
+            if (f) f.focus();
+        }
+
       function close() {
           stopScan();
           $("modal").classList.add("hidden");
@@ -671,31 +710,74 @@
                   ) +
                   "</div>",
               isNew ? "Simpan produk" : "Simpan perubahan",
-              function () {
-                  var d = {
-                      name: v("fName"),
-                      barcode: v("fBc"),
-                      unit: v("fUnit"),
-                      category: v("fCatIn"),
-                      cost: v("fCost"),
-                      price: v("fPrice"),
-                      min: v("fMin"),
-                      stock: isNew ? v("fStock") : 0,
-                  };
-                  var r = isNew
-                      ? M.addProduct(d)
-                      : M.updateProduct(p.id, d);
-                  if (r.ok) {
-                      toast(
-                          (isNew
-                              ? "Produk ditambahkan: "
-                              : "Produk diperbarui: ") +
-                              r.product.name,
-                      );
-                      render();
-                  }
-                  return r;
-              },
+            async function () {
+                var d = {
+                    name: v("fName").trim(),
+                    barcode: v("fBc").trim(),
+                    unit: v("fUnit").trim(),
+                    category: v("fCatIn").trim(),
+                    cost: v("fCost"),
+                    price: v("fPrice"),
+                    min: v("fMin"),
+                    stock: isNew ? v("fStock") : 0,
+                };
+
+                // Proses edit belum dihubungkan ke database.
+                if (!isNew) {
+                    return {
+                        ok: false,
+                        error: "Proses edit produk belum dihubungkan ke database.",
+                    };
+                }
+
+                try {
+                    var response = await fetch("/produk-stok", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json",
+                            "X-CSRF-TOKEN": @json(csrf_token()),
+                        },
+                        body: JSON.stringify(d),
+                    });
+
+                    var result = await response.json();
+
+                    if (!response.ok) {
+                        var message = result.message || "Produk gagal disimpan.";
+
+                        if (result.errors) {
+                            message = Object.values(result.errors)
+                                .flat()
+                                .join(" ");
+                        }
+
+                        return {
+                            ok: false,
+                            error: message,
+                        };
+                    }
+
+                    state.products.unshift(result.product);
+
+                    if (result.move) {
+                        state.moves.unshift(result.move);
+                    }
+
+                    page = 1;
+                    render();
+
+                    toast("Produk ditambahkan: " + result.product.name);
+
+                    return { ok: true };
+
+                } catch (error) {
+                    return {
+                        ok: false,
+                        error: "Tidak dapat terhubung ke server. Periksa koneksi dan coba lagi.",
+                    };
+                }
+            },
           );
           $("scanBtn").onclick = function () {
               scanning ? stopScan() : startScan();

@@ -67,26 +67,42 @@ class ProductController extends Controller
         ));
     }
 
-    // Menambahkan produk
+    
+
     public function store(Request $request)
     {
         $data = $request->validate([
+            'name' => 'required|string|max:150',
             'barcode' => 'nullable|string|max:50|unique:products,barcode',
-            'product_name' => 'required|string|max:150',
             'unit' => 'required|string|max:100',
-            'category_id' => 'required|exists:categories,id',
-            'purchase_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0',
+            'category' => 'required|string|exists:categories,category_name',
+            'cost' => 'required|numeric|min:0',
+            'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'minimum_stock' => 'required|integer|min:0',
+            'min' => 'required|integer|min:0',
         ]);
 
-        DB::transaction(function () use ($data) {
-            $product = Product::create($data);
+        $category = Category::where(
+            'category_name',
+            $data['category']
+        )->firstOrFail();
 
-            // Catat stok awal jika produk langsung memiliki stok
+        $result = DB::transaction(function () use ($data, $category) {
+            $product = Product::create([
+                'barcode' => $data['barcode'] ?: null,
+                'product_name' => $data['name'],
+                'unit' => $data['unit'],
+                'category_id' => $category->id,
+                'purchase_price' => $data['cost'],
+                'selling_price' => $data['price'],
+                'stock' => $data['stock'],
+                'minimum_stock' => $data['min'],
+            ]);
+
+            $movement = null;
+
             if ($product->stock > 0) {
-                StockMovement::create([
+                $movement = StockMovement::create([
                     'product_id' => $product->id,
                     'user_id' => Auth::id(),
                     'type' => 'adjustment',
@@ -97,10 +113,41 @@ class ProductController extends Controller
                     'movement_date' => now(),
                 ]);
             }
+
+            return [
+                'product' => $product,
+                'movement' => $movement,
+            ];
         });
 
-        return redirect()->route('produk-stok')
-            ->with('success', 'Produk berhasil ditambahkan.');
+        $product = $result['product'];
+        $movement = $result['movement'];
+
+        return response()->json([
+            'message' => 'Produk berhasil ditambahkan.',
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->product_name,
+                'barcode' => $product->barcode,
+                'unit' => $product->unit,
+                'category' => $category->category_name,
+                'cost' => (float) $product->purchase_price,
+                'price' => (float) $product->selling_price,
+                'stock' => (int) $product->stock,
+                'min' => (int) $product->minimum_stock,
+                'promo' => null,
+            ],
+            'move' => $movement ? [
+                'id' => $movement->id,
+                'type' => $movement->type,
+                'qty' => $movement->quantity,
+                'ts' => $movement->movement_date->timestamp * 1000,
+                'name' => $product->product_name,
+                'before' => $movement->stock_before,
+                'after' => $movement->stock_after,
+                'note' => $movement->note,
+            ] : null,
+        ], 201);
     }
 
     // Mengubah produk
