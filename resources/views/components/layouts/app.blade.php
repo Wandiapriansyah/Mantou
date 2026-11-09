@@ -22,7 +22,7 @@
 
     // penjaga hanya melihat menu yang berperan 'worker' (saat ini: Cek harga); semuanya tampil di bottom nav
     if ($role === 'worker') {
-        $menu = $menu->map(fn ($item) => [...$item, 'primary' => true])->values();
+        $menu = $menu->map(fn ($item) => [...$item, 'primary' => true])->sortBy(fn ($item) => array_search($item['key'], $workerOrder))->values();
     }
 @endphp
 
@@ -30,6 +30,7 @@
 <html lang="id">
 <head>
 <x-layouts.head :title="$title" />
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <script>
   // pulihkan preferensi sidebar sebelum render pertama agar tidak berkedip
   (function () {

@@ -831,33 +831,81 @@
                       "",
                       'type="text" placeholder="Mis. dari pemasok A"',
                   ),
-              "Simpan barang masuk",
-              function () {
-                  var ts = M.fmt.parseDT(v("iTs"));
-                  if (ts > Date.now() + 60000)
-                      return {
-                          ok: false,
-                          error: "Waktu tidak boleh di masa depan.",
-                      };
-                  var r = M.addStockIn({
-                      pid: v("iPid"),
-                      qty: v("iQty"),
-                      cost: v("iCost"),
-                      ts: ts,
-                      note: v("iNote").trim(),
-                  });
-                  if (r.ok) {
-                      toast(
-                          r.product.name +
-                              " bertambah " +
-                              r.move.qty +
-                              " · stok " +
-                              r.product.stock,
-                      );
-                      render();
-                  }
-                  return r;
-              },
+              "Simpan barang masuk",               
+                async function () {
+                    var ts = M.fmt.parseDT(v("iTs"));
+
+                    if (ts > Date.now() + 60000) {
+                        return {
+                            ok: false,
+                            error: "Waktu tidak boleh di masa depan.",
+                        };
+                    }
+
+                    try {
+                        var response = await fetch("/produk-stok/stock-in", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "X-CSRF-TOKEN": @json(csrf_token()),
+                            },
+                            body: JSON.stringify({
+                                pid: v("iPid"),
+                                qty: v("iQty"),
+                                cost: v("iCost") === "" ? null : v("iCost"),
+                                ts: ts,
+                                note: v("iNote").trim(),
+                            }),
+                        });
+
+                        var result = await response.json();
+
+                        if (!response.ok) {
+                            return {
+                                ok: false,
+                                error: result.message || "Gagal mencatat barang masuk.",
+                            };
+                        }
+
+                        var product = result.product;
+                        var move = result.move;
+
+                        var index = state.products.findIndex(function (item) {
+                            return String(item.id) === String(product.id);
+                        });
+
+                        if (index !== -1) {
+                            state.products[index] = product;
+                        }
+
+                        if (move) {
+                            state.moves.unshift(move);
+                        }
+
+                        toast(
+                            product.name +
+                                " bertambah " +
+                                move.qty +
+                                " · stok " +
+                                product.stock
+                        );
+
+                        render();
+
+                        return {
+                            ok: true,
+                            product: product,
+                            move: move,
+                        };
+
+                    } catch (error) {
+                        return {
+                            ok: false,
+                            error: "Tidak dapat terhubung ke server.",
+                        };
+                    }
+                },
           );
       }
       function adjustForm(pid) {
@@ -886,32 +934,86 @@
                       'type="text" placeholder="Rusak, hilang, salah hitung…"',
                   ),
               "Simpan penyesuaian",
-              function () {
-                  var ts = M.fmt.parseDT(v("aTs"));
-                  if (ts > Date.now() + 60000)
-                      return {
-                          ok: false,
-                          error: "Waktu tidak boleh di masa depan.",
-                      };
-                  var r = M.adjustStock({
-                      pid: v("aPid"),
-                      counted: v("aCnt"),
-                      ts: ts,
-                      note: v("aNote"),
-                  });
-                  if (r.ok) {
-                      toast(
-                          "Stok " +
-                              r.product.name +
-                              " disesuaikan: " +
-                              r.move.before +
-                              " → " +
-                              r.move.after,
-                      );
-                      render();
-                  }
-                  return r;
-              },
+                async function () {
+                    var ts = M.fmt.parseDT(v("aTs"));
+
+                    if (ts > Date.now() + 60000) {
+                        return {
+                            ok: false,
+                            error: "Waktu tidak boleh di masa depan.",
+                        };
+                    }
+
+                    try {
+                        var response = await fetch("/produk-stok/stock-adjust", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "X-CSRF-TOKEN": @json(csrf_token()),
+                            },
+                            body: JSON.stringify({
+                                pid: v("aPid"),
+                                counted: v("aCnt"),
+                                ts: ts,
+                                note: v("aNote").trim(),
+                            }),
+                        });
+
+                        var result = await response.json();
+
+                        if (!response.ok) {
+                            var message = result.message || "Gagal melakukan penyesuaian stok.";
+
+                            if (result.errors) {
+                                message = Object.values(result.errors).flat().join(" ");
+                            }
+
+                            return {
+                                ok: false,
+                                error: message,
+                            };
+                        }
+
+                        var product = result.product;
+                        var move = result.move;
+
+                        var index = state.products.findIndex(function (item) {
+                            return String(item.id) === String(product.id);
+                        });
+
+                        if (index !== -1) {
+                            state.products[index] = product;
+                        }
+
+                        if (move) {
+                            state.moves.unshift(move);
+                        }
+
+                        toast(
+                            "Stok " +
+                                product.name +
+                                " disesuaikan: " +
+                                move.before +
+                                " → " +
+                                move.after
+                        );
+
+                        render();
+
+                        return {
+                            ok: true,
+                            product: product,
+                            move: move,
+                        };
+
+                    } catch (error) {
+                        return {
+                            ok: false,
+                            error: "Tidak dapat terhubung ke server.",
+                        };
+                    }
+                },
           );
       }
 
@@ -1002,24 +1104,58 @@
             }
         }
       });
-      $("moves").addEventListener("click", function (e) {
-          var b = e.target.closest("[data-v]");
-          if (!b) return;
-          var id = b.getAttribute("data-v");
-          if (
-              !confirm(
-                  "Batalkan catatan stok " +
-                      id +
-                      "? Stok produk dikembalikan seperti sebelumnya.",
-              )
-          )
-              return;
-          var r = M.voidMove(id);
-          if (r.ok) {
-              toast("Catatan " + id + " dibatalkan");
-              render();
-          } else alert(r.error);
-      });
+    $("moves").addEventListener("click", async function (e) {
+        var b = e.target.closest("[data-v]");
+        if (!b) return;
+
+        var id = b.getAttribute("data-v");
+
+        if (
+            !confirm(
+                "Batalkan catatan stok " +
+                    id +
+                    "? Stok produk dikembalikan seperti sebelumnya."
+            )
+        ) {
+            return;
+        }
+
+        try {
+            var response = await fetch("/produk-stok/void-move", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": @json(csrf_token()),
+                },
+                body: JSON.stringify({
+                    id: id,
+                }),
+            });
+
+            var result = await response.json();
+
+            if (!response.ok) {
+                var message = result.message || "Gagal membatalkan catatan stok.";
+
+                if (result.errors) {
+                    message = Object.values(result.errors).flat().join(" ");
+                }
+
+                alert(message);
+                return;
+            }
+
+            toast("Catatan " + id + " berhasil dibatalkan");
+
+            // Muat ulang halaman agar stok dan riwayat
+            // mengikuti data terbaru dari database.
+            window.location.reload();
+
+        } catch (error) {
+            alert("Tidak dapat terhubung ke server.");
+        }
+    });
       M.onChange(render);
       window.addEventListener("pageshow", render);
 

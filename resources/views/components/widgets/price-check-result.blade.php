@@ -1,12 +1,12 @@
-@props(['canAdd' => true])
+@props({'canAdd' => true})
 
 <div class="flex flex-col gap-5">
   <div id="result" aria-live="polite"></div>
 
   <x-ui.card radius="2xl" title="Produk belum terdaftar?">
     @if ($canAdd)
-      <p class="mt-2 text-[12px] leading-relaxed text-muted">Hanya produk terdaftar yang dapat dicari. Pemilik atau pengguna berizin dapat menambahkan produk baru.</p>
-      <x-forms.button href="/produk-stok" icon="plus" class="mt-4">Tambah produk</x-forms.button>
+    <p class="mt-2 text-[12px] leading-relaxed text-muted">Hanya produk terdaftar yang dapat dicari. Pemilik atau pengguna berizin dapat menambahkan produk baru.</p>
+    <x-forms.button href="/produk-stok" icon="plus" class="mt-4">Tambah produk</x-forms.button>
     @else
       <p class="mt-2 text-[12px] leading-relaxed text-muted">Hanya produk terdaftar yang dapat dicari. Hanya pemilik warung yang dapat menambahkan produk baru.</p>
       <x-forms.button type="button" icon="plus" class="mt-4 cursor-not-allowed opacity-50 hover:border-line" disabled aria-disabled="true" title="Hanya pemilik yang dapat menambah produk">Tambah produk</x-forms.button>
@@ -26,18 +26,27 @@
   const nowWib = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + '.' + String(d.getMinutes()).padStart(2, '0') + ' WIB'; };
   const digits = (s) => String(s).replace(/\D/g, '').replace(/^0+/, '');
 
-  const ICON_WARN = '<svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>';
+  async function fetchProducts(q = '') {
+    const response = await fetch('/cek-harga/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({ q: q })
+    });
 
-  function findProducts(q) {
-    q = q.trim();
-    if (!q) return [];
-    const d = digits(q);
-    if (/^\d{6,}$/.test(q.replace(/[\s-]/g, ''))) {
-      return getCatalog().filter((p) => p.barcode && digits(p.barcode) === d);
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Gagal mengambil data produk.');
     }
-    const low = q.toLowerCase();
-    return getCatalog().filter((p) => p.name.toLowerCase().includes(low) || p.category.toLowerCase().includes(low));
+
+    return result.data;
   }
+
+  const ICON_WARN = '<svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>';
 
   const SHELL = 'rounded-2xl border border-line bg-surface p-6';
 
@@ -61,7 +70,7 @@
         <div class="mt-5 rounded-xl border border-warning bg-warn-bg p-5">
           <p class="text-[13px] font-bold text-warn">Belum terdaftar di warung ini</p>
           <p class="mt-1.5 text-[12px] leading-relaxed text-warn">Periksa kembali barcode atau coba pindai ulang. ${CAN_ADD ? 'Jika produk memang baru, tambahkan lewat Produk &amp; stok.' : 'Jika produk memang baru, minta pemilik warung untuk menambahkannya.'}</p>
-          ${CAN_ADD ? `<a href="/produk-stok?aksi=tambah&${/^\d{6,}$/.test(q.replace(/[\s-]/g, '')) ? 'barcode=' : 'nama='}${encodeURIComponent(q)}" class="mt-3 inline-block text-[12px] font-bold text-brand-dark hover:underline">Tambah produk ini →</a>` : ''}
+           ${CAN_ADD ? `<a href="/produk-stok?aksi=tambah&${/^\d{6,}$/.test(q.replace(/[\s-]/g, '')) ? 'barcode=' : 'nama='}${encodeURIComponent(q)}" class="mt-3 inline-block text-[12px] font-bold text-brand-dark hover:underline">Tambah produk ini →</a>` : ''}
         </div>
       </section>`;
   }
@@ -106,11 +115,35 @@
       </section>`;
   }
 
-  function lookup(q) {
+  async function lookup(q) {
     q = (q || '').trim();
-    if (!q) { renderEmpty(); return; }
-    const list = findProducts(q);
-    list.length ? renderFound(list) : renderNotFound(q);
+
+    if (!q) {
+      renderEmpty();
+      return;
+    }
+
+    try {
+      const list = await fetchProducts(q);
+
+      if (list.length > 0) {
+        renderFound(list);
+      } else {
+        renderNotFound(q);
+      }
+    } catch (error) {
+      console.error('Gagal mencari produk:', error);
+
+      $('result').innerHTML = `
+        <section class="${SHELL}">
+          <p class="text-[14px] font-bold text-danger-dark">
+            Gagal mengambil data produk
+          </p>
+          <p class="mt-2 text-[12px] text-muted">
+            Silakan periksa koneksi dan coba kembali.
+          </p>
+        </section>`;
+    }
   }
 
   window.lookupProduct = lookup;
@@ -121,18 +154,36 @@
     const b = e.target.closest('[data-pick]');
     if (b) { $('q').value = b.dataset.pick; lookup(b.dataset.pick); }
   });
-  $('chips').innerHTML = getCatalog().slice(0, 4).map((p) =>
-    `<button type="button" data-chip="${esc(p.barcode || p.name)}" class="rounded-full border border-line bg-surface px-3 py-1 text-[12px] font-semibold text-ink transition hover:border-brand hover:text-brand-dark">${esc(p.name.split(' ').slice(0, 2).join(' '))}</button>`).join('');
+  async function loadProductChips() {
+    try {
+      const products = await fetchProducts('');
+
+      $('chips').innerHTML = products.map((p) =>
+        `<button type="button" data-chip="${esc(p.barcode || p.name)}" class="rounded-full border border-line bg-surface px-3 py-1 text-[12px] font-semibold text-ink transition hover:border-brand hover:text-brand-dark">${esc(p.name.split(' ').slice(0, 2).join(' '))}</button>`
+      ).join('');
+    } catch (error) {
+      console.error('Gagal memuat chip produk:', error);
+      $('chips').innerHTML = '';
+    }
+  }
+
+  loadProductChips();
   $('chips').addEventListener('click', (e) => {
     const b = e.target.closest('[data-chip]');
     if (!b) return;
-    if (scanning) { stopCamera(); setUi('idle'); }
-    $('q').value = b.dataset.chip; lookup(b.dataset.chip);
+
+    $('q').value = b.dataset.chip;
+    lookup(b.dataset.chip);
   });
 
   renderEmpty();
+
   const preQ = new URLSearchParams(location.search).get('q');
-  if (preQ) { $('q').value = preQ; lookup(preQ); }
+
+  if (preQ) {
+    $('q').value = preQ;
+    lookup(preQ);
+  }
 })();
 </script>
 @endpush

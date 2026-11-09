@@ -25,6 +25,7 @@ class StockMovement extends Model
 
     protected $casts = [
         'movement_date' => 'datetime',
+        'is_voided' => 'boolean',
     ];
 
     public function product(): BelongsTo
