@@ -7,7 +7,6 @@ use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use App\Models\StockMovement;
-use App\Models\TransactionDetails;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -81,7 +80,7 @@ class CashierController extends Controller
                     $subtotal = $price * $quantity;
 
                     // Menyimpan detail transaksi
-                    TransactionDetails::create([
+                    TransactionDetail::create([
                         'transaction_id' => $transaction->id,
                         'product_id' => $product->id,
                         'purchase_quantity' => $quantity,

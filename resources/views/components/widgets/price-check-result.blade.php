@@ -1,4 +1,4 @@
-@props({'canAdd' => true})
+@props(['canAdd' => true])
 
 <div class="flex flex-col gap-5">
   <div id="result" aria-live="polite"></div>

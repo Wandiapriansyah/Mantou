@@ -42,9 +42,11 @@ Route::middleware('auth')->group(function () {
             return view('admin.analisis-stok-penjualan');
         });
 
-        Route::get('catatan-transaksi', function () {
-            return view('admin.catatan-transaksi');
-        });
+        // Catatan transaksi
+        Route::get('/catatan-transaksi', [TransactionController::class, 'catatan'])->name('catatan-transaksi');
+        Route::post('/catatan-transaksi/penjualan', [TransactionController::class, 'storeSale'])->name('catatan-transaksi.sale.store');
+        Route::post('/catatan-transaksi/pengeluaran', [TransactionController::class, 'storeExpense'])->name('catatan-transaksi.expense.store');
+        Route::delete('/catatan-transaksi/{type}/{id}', [TransactionController::class, 'void'])->name('catatan-transaksi.void');
 
         Route::get('laporan-keuangan', function () {
             return view('admin.laporan-keuangan');
