@@ -150,25 +150,48 @@ class ProductController extends Controller
         ], 201);
     }
 
-    // Mengubah produk
     public function update(Request $request, Product $product)
     {
         $data = $request->validate([
+            'name' => 'required|string|max:150',
             'barcode' => 'nullable|string|max:50|unique:products,barcode,' . $product->id,
-            'product_name' => 'required|string|max:150',
             'unit' => 'required|string|max:100',
-            'category_id' => 'required|exists:categories,id',
-            'purchase_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0',
-            'minimum_stock' => 'required|integer|min:0',
+            'category' => 'required|string|exists:categories,category_name',
+            'cost' => 'required|numeric|min:0',
+            'price' => 'required|numeric|min:0',
+            'min' => 'required|integer|min:0',
         ]);
 
-        // Stok tidak diubah melalui form edit produk.
-        // Perubahan stok harus melalui barang masuk atau penyesuaian stok.
-        $product->update($data);
+        $category = Category::where(
+            'category_name',
+            $data['category']
+        )->firstOrFail();
 
-        return redirect()->route('produk-stok')
-            ->with('success', 'Produk berhasil diperbarui.');
+        $product->update([
+            'barcode' => $data['barcode'] ?: null,
+            'product_name' => $data['name'],
+            'unit' => $data['unit'],
+            'category_id' => $category->id,
+            'purchase_price' => $data['cost'],
+            'selling_price' => $data['price'],
+            'minimum_stock' => $data['min'],
+        ]);
+
+        return response()->json([
+            'message' => 'Produk berhasil diperbarui.',
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->product_name,
+                'barcode' => $product->barcode,
+                'unit' => $product->unit,
+                'category' => $category->category_name,
+                'cost' => (float) $product->purchase_price,
+                'price' => (float) $product->selling_price,
+                'stock' => (int) $product->stock,
+                'min' => (int) $product->minimum_stock,
+                'promo' => null,
+            ],
+        ]);
     }
 
     // Menghapus produk

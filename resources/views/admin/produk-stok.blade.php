@@ -722,24 +722,21 @@
                     stock: isNew ? v("fStock") : 0,
                 };
 
-                // Proses edit belum dihubungkan ke database.
-                if (!isNew) {
-                    return {
-                        ok: false,
-                        error: "Proses edit produk belum dihubungkan ke database.",
-                    };
-                }
-
                 try {
-                    var response = await fetch("/produk-stok", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json",
-                            "X-CSRF-TOKEN": @json(csrf_token()),
-                        },
-                        body: JSON.stringify(d),
-                    });
+                    var response = await fetch(
+                        isNew
+                            ? "/produk-stok"
+                            : "/produk-stok/" + encodeURIComponent(p.id),
+                        {
+                            method: isNew ? "POST" : "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "X-CSRF-TOKEN": @json(csrf_token()),
+                            },
+                            body: JSON.stringify(d),
+                        }
+                    );
 
                     var result = await response.json();
 
@@ -758,16 +755,28 @@
                         };
                     }
 
-                    state.products.unshift(result.product);
+                    if (isNew) {
+                        state.products.unshift(result.product);
 
-                    if (result.move) {
-                        state.moves.unshift(result.move);
+                        if (result.move) {
+                            state.moves.unshift(result.move);
+                        }
+
+                        page = 1;
+                        toast("Produk ditambahkan: " + result.product.name);
+                    } else {
+                        var index = state.products.findIndex(function (item) {
+                            return String(item.id) === String(result.product.id);
+                        });
+
+                        if (index !== -1) {
+                            state.products[index] = result.product;
+                        }
+
+                        toast("Produk diperbarui: " + result.product.name);
                     }
 
-                    page = 1;
                     render();
-
-                    toast("Produk ditambahkan: " + result.product.name);
 
                     return { ok: true };
 
