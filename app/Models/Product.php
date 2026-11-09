@@ -16,6 +16,7 @@ class Product extends Model
     protected $fillable = [
         'barcode',
         'product_name',
+        'unit',
         'selling_price',
         'purchase_price',
         'stock',
@@ -23,15 +24,23 @@ class Product extends Model
         'category_id',
     ];
 
-    public function category(): BelongsTo {
+    public function category(): BelongsTo
+    {
         return $this->belongsTo(Category::class, 'category_id');
     }
 
-    public function discounts(): HasMany {
+    public function discounts(): HasMany
+    {
         return $this->hasMany(Discount::class, 'product_id');
     }
 
-    public function trasaction_details(): HasMany {
+    public function trasaction_details(): HasMany
+    {
         return $this->hasMany(TransactionDetail::class, 'product_id');
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class, 'product_id');
     }
 }

@@ -56,12 +56,22 @@
 <script>
   (function () {
       var M = window.Mantou,
-          rp = M.fmt.rupiah,
-          PER = 10,
-          page = 1;
+      rp = M.fmt.rupiah,
+      state = @json($initialState),
+      PER = 10,
+      page = 1;
       var $ = function (id) {
           return document.getElementById(id);
       };
+      function getData() {
+            return state;
+        }
+
+        function findProduct(id) {
+            return state.products.find(function (p) {
+                return String(p.id) === String(id);
+            });
+        }
       var esc = function (t) {
           return String(t == null ? "" : t).replace(
               /[&<>"']/g,
@@ -319,7 +329,7 @@
       }
 
       function render() {
-          var s = M.get();
+          var s = getData();
           renderKpis(s.products);
           renderCats(s.products);
           renderRows(s.products);
@@ -373,7 +383,7 @@
           stopScan();
           if (!typed && navigator.vibrate) navigator.vibrate(60);
           $("fBc").value = code;
-          var dup = M.get().products.filter(function (p) {
+          var dup = getData().products.filter(function (p) {
               return p.barcode && norm(p.barcode) === norm(code);
           })[0];
           if (dup)
@@ -562,7 +572,7 @@
               '" class="' +
               INP +
               '"><option value="">Pilih produk…</option>' +
-              M.get()
+              getData()
                   .products.map(function (p) {
                       return (
                           '<option value="' +
@@ -585,7 +595,7 @@
           var isNew = !p;
           p = p || pre || {};
           var cats = [];
-          M.get().products.forEach(function (x) {
+          getData().products.forEach(function (x) {
               if (cats.indexOf(x.category) < 0) cats.push(x.category);
           });
           open(
@@ -829,22 +839,21 @@
       ["q", "fCat", "fSts"].forEach(function (id) {
           $(id).addEventListener("input", function () {
               page = 1;
-              renderRows(M.get().products);
+              renderRows(getData().products);
           });
       });
       $("prev").onclick = function () {
           page--;
-          renderRows(M.get().products);
+          renderRows(getData().products);
       };
       $("next").onclick = function () {
           page++;
-          renderRows(M.get().products);
+          renderRows(getData().products);
       };
       $("rows").addEventListener("click", function (e) {
           var b = e.target.closest("[data-a]");
           if (!b) return;
-          var s = M.get(),
-              p = M.find(s.products, b.getAttribute("data-id")),
+          var p = findProduct(b.getAttribute("data-id")),
               a = b.getAttribute("data-a");
           if (!p) return;
           if (a === "edit") productForm(p);
@@ -888,7 +897,7 @@
           aksi = qs.get("aksi");
       if (qs.get("cari")) {
           $("q").value = qs.get("cari");
-          renderRows(M.get().products);
+          renderRows(getData().products);
       }
       if (aksi === "tambah")
           productForm(null, {

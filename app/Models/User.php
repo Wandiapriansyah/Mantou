@@ -27,8 +27,13 @@ class User extends Authenticatable
         'password',
     ];
 
-    public function transaction(): HasMany {
+    public function transaction(): HasMany
+    {
         return $this->hasMany(Transaction::class, 'user_id');
     }
 
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class, 'user_id');
+    }
 }

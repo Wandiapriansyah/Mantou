@@ -19,15 +19,13 @@ class Transaction extends Model
         'user_id',
     ];
 
-    // Relasi: Transaksi dilayani oleh satu User (Kasir/Admin)
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Relasi: Satu Transaksi memiliki banyak Transaksi Detail
-    public function transactionDetail(): HasMany
+    public function transactionDetails(): HasMany
     {
-        return $this->hasMany(TransactionDetail::class, 'transaksi_id');
+        return $this->hasMany(TransactionDetail::class, 'transaction_id');
     }
 }
