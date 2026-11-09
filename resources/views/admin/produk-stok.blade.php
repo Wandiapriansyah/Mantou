@@ -56,12 +56,22 @@
 <script>
   (function () {
       var M = window.Mantou,
-          rp = M.fmt.rupiah,
-          PER = 10,
-          page = 1;
+      rp = M.fmt.rupiah,
+      state = @json($initialState),
+      PER = 10,
+      page = 1;
       var $ = function (id) {
           return document.getElementById(id);
       };
+      function getData() {
+            return state;
+        }
+
+        function findProduct(id) {
+            return state.products.find(function (p) {
+                return String(p.id) === String(id);
+            });
+        }
       var esc = function (t) {
           return String(t == null ? "" : t).replace(
               /[&<>"']/g,
@@ -319,7 +329,7 @@
       }
 
       function render() {
-          var s = M.get();
+          var s = getData();
           renderKpis(s.products);
           renderCats(s.products);
           renderRows(s.products);
@@ -373,7 +383,7 @@
           stopScan();
           if (!typed && navigator.vibrate) navigator.vibrate(60);
           $("fBc").value = code;
-          var dup = M.get().products.filter(function (p) {
+          var dup = getData().products.filter(function (p) {
               return p.barcode && norm(p.barcode) === norm(code);
           })[0];
           if (dup)
@@ -490,32 +500,71 @@
           }
       }
 
-      function open(title, sub, body, okText, onOk) {
-          $("modalBox").innerHTML =
-              '<h2 class="text-[20px] font-semibold">' +
-              title +
-              '</h2><p class="mt-1 text-[12px] text-muted">' +
-              sub +
-              '</p><div class="mt-5 space-y-4">' +
-              body +
-              '</div><p id="mErr" class="mt-4 hidden rounded-lg border border-danger bg-danger-bg px-3 py-2 text-[12px] font-semibold text-warn"></p><div class="mt-6 flex justify-end gap-2.5"><button type="button" id="mCancel" class="rounded-lg border border-line px-4 py-2.5 text-[13px] font-bold hover:border-brand">Batal</button><button type="button" id="mOk" class="rounded-lg bg-brand px-4 py-2.5 text-[13px] font-bold text-surface hover:bg-brand-dark">' +
-              okText +
-              "</button></div>";
-          $("modal").classList.remove("hidden");
-          $("modal").classList.add("flex");
-          $("mCancel").onclick = close;
-          $("mOk").onclick = function () {
-              var r = onOk();
-              if (r && !r.ok) {
-                  $("mErr").textContent = r.error;
-                  $("mErr").classList.remove("hidden");
-              } else {
-                  close();
-              }
-          };
-          var f = $("modalBox").querySelector("input,select");
-          if (f) f.focus();
-      }
+
+        function open(title, sub, body, okText, onOk) {
+            $("modalBox").innerHTML =
+                '<h2 class="text-[20px] font-semibold">' +
+                title +
+                '</h2><p class="mt-1 text-[12px] text-muted">' +
+                sub +
+                '</p><div class="mt-5 space-y-4">' +
+                body +
+                '</div><p id="mErr" class="mt-4 hidden rounded-lg border border-danger bg-danger-bg px-3 py-2 text-[12px] font-semibold text-warn"></p><div class="mt-6 flex justify-end gap-2.5"><button type="button" id="mCancel" class="rounded-lg border border-line px-4 py-2.5 text-[13px] font-bold hover:border-brand">Batal</button><button type="button" id="mOk" class="rounded-lg bg-brand px-4 py-2.5 text-[13px] font-bold text-surface hover:bg-brand-dark">' +
+                okText +
+                "</button></div>";
+
+            $("modal").classList.remove("hidden");
+            $("modal").classList.add("flex");
+
+            $("mCancel").onclick = close;
+
+            $("mOk").onclick = function () {
+                var btn = $("mOk");
+                var err = $("mErr");
+
+                err.classList.add("hidden");
+
+                function showError(message) {
+                    err.textContent = message;
+                    err.classList.remove("hidden");
+                    btn.disabled = false;
+                    btn.textContent = okText;
+                }
+
+                var result;
+
+                try {
+                    result = onOk();
+                } catch (error) {
+                    showError(error.message || "Terjadi kesalahan.");
+                    return;
+                }
+
+                if (result && typeof result.then === "function") {
+                    btn.disabled = true;
+                    btn.textContent = "Menyimpan...";
+
+                    result.then(function (r) {
+                        if (r && !r.ok) {
+                            showError(r.error);
+                        } else {
+                            close();
+                        }
+                    }).catch(function (error) {
+                        showError(error.message || "Gagal menyimpan data.");
+                    });
+
+                } else if (result && !result.ok) {
+                    showError(result.error);
+                } else {
+                    close();
+                }
+            };
+
+            var f = $("modalBox").querySelector("input,select");
+            if (f) f.focus();
+        }
+
       function close() {
           stopScan();
           $("modal").classList.add("hidden");
@@ -562,7 +611,7 @@
               '" class="' +
               INP +
               '"><option value="">Pilih produk…</option>' +
-              M.get()
+              getData()
                   .products.map(function (p) {
                       return (
                           '<option value="' +
@@ -585,7 +634,7 @@
           var isNew = !p;
           p = p || pre || {};
           var cats = [];
-          M.get().products.forEach(function (x) {
+          getData().products.forEach(function (x) {
               if (cats.indexOf(x.category) < 0) cats.push(x.category);
           });
           open(
@@ -661,31 +710,83 @@
                   ) +
                   "</div>",
               isNew ? "Simpan produk" : "Simpan perubahan",
-              function () {
-                  var d = {
-                      name: v("fName"),
-                      barcode: v("fBc"),
-                      unit: v("fUnit"),
-                      category: v("fCatIn"),
-                      cost: v("fCost"),
-                      price: v("fPrice"),
-                      min: v("fMin"),
-                      stock: isNew ? v("fStock") : 0,
-                  };
-                  var r = isNew
-                      ? M.addProduct(d)
-                      : M.updateProduct(p.id, d);
-                  if (r.ok) {
-                      toast(
-                          (isNew
-                              ? "Produk ditambahkan: "
-                              : "Produk diperbarui: ") +
-                              r.product.name,
-                      );
-                      render();
-                  }
-                  return r;
-              },
+            async function () {
+                var d = {
+                    name: v("fName").trim(),
+                    barcode: v("fBc").trim(),
+                    unit: v("fUnit").trim(),
+                    category: v("fCatIn").trim(),
+                    cost: v("fCost"),
+                    price: v("fPrice"),
+                    min: v("fMin"),
+                    stock: isNew ? v("fStock") : 0,
+                };
+
+                try {
+                    var response = await fetch(
+                        isNew
+                            ? "/produk-stok"
+                            : "/produk-stok/" + encodeURIComponent(p.id),
+                        {
+                            method: isNew ? "POST" : "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "X-CSRF-TOKEN": @json(csrf_token()),
+                            },
+                            body: JSON.stringify(d),
+                        }
+                    );
+
+                    var result = await response.json();
+
+                    if (!response.ok) {
+                        var message = result.message || "Produk gagal disimpan.";
+
+                        if (result.errors) {
+                            message = Object.values(result.errors)
+                                .flat()
+                                .join(" ");
+                        }
+
+                        return {
+                            ok: false,
+                            error: message,
+                        };
+                    }
+
+                    if (isNew) {
+                        state.products.unshift(result.product);
+
+                        if (result.move) {
+                            state.moves.unshift(result.move);
+                        }
+
+                        page = 1;
+                        toast("Produk ditambahkan: " + result.product.name);
+                    } else {
+                        var index = state.products.findIndex(function (item) {
+                            return String(item.id) === String(result.product.id);
+                        });
+
+                        if (index !== -1) {
+                            state.products[index] = result.product;
+                        }
+
+                        toast("Produk diperbarui: " + result.product.name);
+                    }
+
+                    render();
+
+                    return { ok: true };
+
+                } catch (error) {
+                    return {
+                        ok: false,
+                        error: "Tidak dapat terhubung ke server. Periksa koneksi dan coba lagi.",
+                    };
+                }
+            },
           );
           $("scanBtn").onclick = function () {
               scanning ? stopScan() : startScan();
@@ -829,38 +930,77 @@
       ["q", "fCat", "fSts"].forEach(function (id) {
           $(id).addEventListener("input", function () {
               page = 1;
-              renderRows(M.get().products);
+              renderRows(getData().products);
           });
       });
       $("prev").onclick = function () {
           page--;
-          renderRows(M.get().products);
+          renderRows(getData().products);
       };
       $("next").onclick = function () {
           page++;
-          renderRows(M.get().products);
+          renderRows(getData().products);
       };
-      $("rows").addEventListener("click", function (e) {
-          var b = e.target.closest("[data-a]");
-          if (!b) return;
-          var s = M.get(),
-              p = M.find(s.products, b.getAttribute("data-id")),
-              a = b.getAttribute("data-a");
-          if (!p) return;
-          if (a === "edit") productForm(p);
-          else if (a === "in") stockInForm(p.id);
-          else if (a === "adj") adjustForm(p.id);
-          else if (
-              confirm(
-                  'Hapus "' +
-                      p.name +
-                      '" dari daftar produk? Riwayat penjualan lama tetap tersimpan.',
-              )
-          ) {
-              M.removeProduct(p.id);
-              toast("Produk dihapus: " + p.name);
-              render();
-          }
+      $("rows").addEventListener("click", async function (e) {
+        var b = e.target.closest("[data-a]");
+        if (!b) return;
+
+        var p = findProduct(b.getAttribute("data-id")),
+            a = b.getAttribute("data-a");
+
+        if (!p) return;
+
+        if (a === "edit") {
+            productForm(p);
+        } else if (a === "in") {
+            stockInForm(p.id);
+        } else if (a === "adj") {
+            adjustForm(p.id);
+        } else if (
+            confirm(
+                'Hapus "' +
+                    p.name +
+                    '" dari daftar produk? Riwayat penjualan lama tetap tersimpan.',
+            )
+        ) {
+            try {
+                var response = await fetch(
+                    "/produk-stok/" + encodeURIComponent(p.id),
+                    {
+                        method: "DELETE",
+                        headers: {
+                            "Accept": "application/json",
+                            "X-CSRF-TOKEN": @json(csrf_token()),
+                        },
+                    }
+                );
+
+                var result = await response.json();
+
+                if (!response.ok) {
+                    var message = result.message || "Produk gagal dihapus.";
+
+                    if (result.errors) {
+                        message = Object.values(result.errors)
+                            .flat()
+                            .join(" ");
+                    }
+
+                    toast(message);
+                    return;
+                }
+
+                state.products = state.products.filter(function (item) {
+                    return String(item.id) !== String(p.id);
+                });
+
+                render();
+                toast("Produk dihapus: " + p.name);
+
+            } catch (error) {
+                toast("Tidak dapat terhubung ke server.");
+            }
+        }
       });
       $("moves").addEventListener("click", function (e) {
           var b = e.target.closest("[data-v]");
@@ -888,7 +1028,7 @@
           aksi = qs.get("aksi");
       if (qs.get("cari")) {
           $("q").value = qs.get("cari");
-          renderRows(M.get().products);
+          renderRows(getData().products);
       }
       if (aksi === "tambah")
           productForm(null, {

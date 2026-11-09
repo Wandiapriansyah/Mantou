@@ -26,7 +26,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [AuthController::class, 'dash'])->name('dashboard');
         Route::resource('users', UserController::class);
         Route::resource('categories', CategoryController::class);
-        Route::resource('products', ProductController::class);
         Route::resource('discounts', DiscountController::class);
         Route::resource('transaksi', TransactionController::class)->only(['index', 'show', 'destroy']);
 
@@ -50,10 +49,6 @@ Route::middleware('auth')->group(function () {
             return view('admin.laporan-keuangan');
         });
 
-        Route::get('produk-stok', function () {
-            return view('admin.produk-stok');
-        });
-
         Route::get('rekomendasi-diskon', function () {
             return view('admin.rekomendasi-diskon');
         });
@@ -63,4 +58,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/kasir/search-barcode', [CashierController::class,'searchByBarcode']);
         Route::post('/kasir/transaction', [CashierController::class, 'storeTransaction']);
     });
+
+    Route::get('/produk-stok', [ProductController::class, 'index'])->name('produk-stok');
+    Route::post('/produk-stok', [ProductController::class, 'store'])->name('produk-stok.store');
+    Route::put('/produk-stok/{product}', [ProductController::class, 'update'])->name('produk-stok.update');
+    Route::delete('/produk-stok/{product}', [ProductController::class, 'destroy'])->name('produk-stok.destroy');
 });
