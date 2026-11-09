@@ -68,6 +68,7 @@
 
 @push('scripts')
 <script>
+  window.LaravelUser = @json(auth()->user());
   (function () {
     var M = window.Mantou, period = '7';
     var $ = function (id) { return document.getElementById(id); };
@@ -87,8 +88,12 @@
     function guard(name, fn) { try { fn(); } catch (e) { if (window.console) console.error('Ringkasan: ' + name, e); showError('Sebagian data tidak dapat ditampilkan. Muat ulang halaman; jika berulang, hubungi pengelola.'); } }
 
     function greeting() {
-      var h = new Date().getHours(), w = h < 11 ? 'pagi' : h < 15 ? 'siang' : h < 18 ? 'sore' : 'malam', n = M.getUser().name;
-      setText('greet', 'Selamat ' + w + (n ? ', ' + n : ''));
+        var h = new Date().getHours();
+        var w = h < 11 ? 'pagi' : h < 15 ? 'siang' : h < 18 ? 'sore' : 'malam';
+
+        var userName = window.LaravelUser ? window.LaravelUser.name : '';
+
+        setText('greet', 'Selamat ' + w + (userName ? ', ' + userName : ''));
     }
 
     function kpis(r, sum) {
