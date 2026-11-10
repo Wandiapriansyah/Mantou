@@ -20,6 +20,14 @@ class RoleMiddleware
         }
 
         if (!in_array($user->roles, $roles, true)) {
+            if ($user->roles === 'admin') {
+                return redirect('/dashboard');
+            }
+
+            if ($user->roles === 'cashier') {
+                return redirect('/kasir');
+            }
+
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 

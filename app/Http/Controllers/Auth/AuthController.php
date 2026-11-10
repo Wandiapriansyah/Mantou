@@ -112,9 +112,11 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
-
+        
         $user = Auth::user();
 
+        $request->session()->forget('url.intended');
+        
         if ($user->roles === 'admin') {
             return redirect()->intended('/dashboard');
         }
