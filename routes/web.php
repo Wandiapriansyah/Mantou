@@ -34,9 +34,7 @@ Route::middleware('auth')->group(function () {
         });
         Route::post('/cek-harga/search', [ProductController::class, 'searchForPriceCheck'])->name('cek-harga.search');
 
-        Route::get('analisis-harga', function () {
-            return view('admin.analisis-harga');
-        });
+        Route::get('/analisis-harga', [ProductController::class, 'analisisHarga'])->name('analisis-harga');
 
         Route::get('analisis-stok-penjualan', function () {
             return view('admin.analisis-stok-penjualan');
@@ -65,5 +63,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/produk-stok/stock-adjust', [ProductController::class, 'stockAdjust'])->name('produk-stok.stock-adjust');
     Route::post('/produk-stok/void-move', [ProductController::class, 'voidMove'])->name('produk-stok.void-move');
     Route::put('/produk-stok/{product}', [ProductController::class, 'update'])->name('produk-stok.update');
+    Route::put('/produk-stok/{product}/harga', [ProductController::class, 'updatePrice'])->name('produk-stok.update-price');
     Route::delete('/produk-stok/{product}', [ProductController::class, 'destroy'])->name('produk-stok.destroy');
 });

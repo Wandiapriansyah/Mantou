@@ -11,7 +11,29 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-    // Menampilkan halaman Produk & Stok
+    public function analisisHarga()
+    {
+        $products = Product::with('category')
+            ->orderBy('product_name')
+            ->get();
+
+        $analysisProducts = $products->map(function ($product) {
+            return [
+                'id' => $product->id,
+                'name' => $product->product_name,
+                'barcode' => $product->barcode,
+                'unit' => $product->unit,
+                'category' => $product->category->category_name ?? '',
+                'cost' => (float) $product->purchase_price,
+                'price' => (float) $product->selling_price,
+                'stock' => (int) $product->stock,
+                'min' => (int) $product->minimum_stock,
+                'promo' => null,
+            ];
+        })->values();
+
+        return view('admin.analisis-harga', compact('analysisProducts'));
+    }
     
     public function index()
     {
@@ -483,6 +505,23 @@ class ProductController extends Controller
                     'updated' => $product->updated_at,
                 ];
             }),
+        ]);
+    }
+
+    public function updatePrice(Request $request, Product $product)
+    {
+        $validated = $request->validate([
+            'selling_price' => 'required|numeric|min:1',
+        ]);
+
+        $product->update([
+            'selling_price' => $validated['selling_price'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Harga jual berhasil diperbarui.',
+            'price' => (float) $product->selling_price,
         ]);
     }
 
