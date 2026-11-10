@@ -1,13 +1,17 @@
-@props(['menu', 'active', 'role' => null])
+@props(['menu', 'active', 'role' => null, 'userName' => '', 'userTitle' => ''])
 
 @php
     // ---- Konfigurasi key (identifikasi menu berdasarkan key, bukan urutan array) ----
     $ctaKey = 'cek-harga';
     $adminLeft = ['index', 'produk-stok'];
     $adminRight = ['catatan-transaksi'];
-    $guardLeft = ['catatan-transaksi'];
     $guardRoles = ['worker', 'cashier']; // nilai $role penjaga (layout menormalkan ke 'worker')
-    $logoutRoute = 'logout';
+    $logoutUrl = '/logout'; // endpoint yang sama dengan sidebar desktop
+
+    // Identitas akun (sama seperti sidebar): inisial dari nama, cadangan huruf pertama peran.
+    $initials = collect(preg_split('/\s+/', trim($userName), -1, PREG_SPLIT_NO_EMPTY))
+        ->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') ?: mb_strtoupper(mb_substr($userTitle, 0, 1));
+    $firstName = trim(strtok(trim($userName), ' ') ?: '');
 
     // ---- Role dikirim dari layout (app.blade.php) lewat prop `role` ----
     $role = $role ?? 'admin';
@@ -18,7 +22,7 @@
         ->sortBy(fn ($i) => array_search($i['key'], $keys, true))->values();
 
     if ($isGuard) {
-        $left = $byKeys($guardLeft);
+        $left = collect(); // sisi kiri penjaga diisi blok Akun (di bawah), bukan item menu
         $right = collect();
         $more = collect();
     } else {
@@ -70,6 +74,16 @@
           </a>
         @endforeach
 
+        @if ($zone === 'left' && $isGuard)
+          {{-- Penjaga: Akun. Belum ada halaman akun, jadi hanya menampilkan identitas (bukan link). --}}
+          <div @class([$tab, 'font-medium text-muted']) role="group" aria-label="Akun{{ $userName !== '' ? ': '.$userName : '' }}">
+            <span class="grid h-7 w-10 place-items-center min-[360px]:w-12">
+              <span class="grid size-7 place-items-center rounded-full bg-line text-[11px] font-bold text-ink" aria-hidden="true">{{ $initials }}</span>
+            </span>
+            <span class="max-w-full truncate whitespace-nowrap">{{ $firstName !== '' ? $firstName : 'Akun' }}</span>
+          </div>
+        @endif
+
         @if ($zone === 'right')
           @if ($showMore)
             <button type="button" id="moreToggle" aria-expanded="false" aria-controls="moreMenu" aria-haspopup="true" @class([$tab, 'font-bold text-brand-dark' => $moreActive, 'font-medium text-muted' => ! $moreActive])>
@@ -80,7 +94,7 @@
             </button>
           @else
             {{-- Penjaga: Logout langsung terlihat, POST + CSRF --}}
-            <form method="POST" action="{{ route($logoutRoute) }}" class="flex min-w-0 max-w-[4.75rem] flex-1 sm:max-w-[5.5rem]">
+            <form method="POST" action="{{ $logoutUrl }}" class="flex min-w-0 max-w-[4.75rem] flex-1 sm:max-w-[5.5rem]">
               @csrf
               <button type="submit" class="flex w-full min-w-0 flex-col items-center gap-1 px-0.5 pb-1.5 pt-2 text-[10px] font-medium leading-tight text-muted min-[360px]:text-[11px] sm:text-xs">
                 <span class="{{ $pill }}">
@@ -109,7 +123,7 @@
       </a>
     @endforeach
 
-    <form method="POST" action="{{ route($logoutRoute) }}" @class(['mt-2 border-t border-line pt-2' => $more->isNotEmpty()])>
+    <form method="POST" action="{{ $logoutUrl }}" @class(['mt-2 border-t border-line pt-2' => $more->isNotEmpty()])>
       @csrf
       <button type="submit" class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left">
         <x-ui.icon name="logout" />
