@@ -1,58 +1,168 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Mantou
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**Aplikasi web pengelolaan UMKM: cek harga barcode, produk & stok, catatan transaksi, laporan keuangan, dan analisis bisnis dalam satu sistem.**
 
-## About Laravel
+Karya Tim **NaWaR as RTRw** untuk **Garda Tech National Innovation Competition (GTNIC) 2026**, kategori Web Development.
+Sub-tema: *Accelerating Digital Transformation for Business and SMEs*.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Website live: mantou.rtrwstudio.online
+- Repositori: https://github.com/Wandiapriansyah/Mantou
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Latar Belakang
 
-## Learning Laravel
+Di banyak warung, penjaga sering tidak tahu harga produk saat pemilik tidak di tempat, sehingga harus menelepon pemilik atau memperkirakan harga. Pencatatan transaksi, stok, dan keuangan juga kerap terpisah, sehingga pemilik sulit mengetahui barang yang laku, sisa stok, dan keuntungan usaha.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Mantou menjawab masalah tersebut dengan sistem yang menyatukan pencarian harga, pengelolaan stok, pencatatan transaksi, dan analisis usaha.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+> Pencatatan transaksi pada Mantou berfungsi sebagai dokumentasi usaha, bukan sistem kasir atau pemrosesan pembayaran.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Fitur Utama
 
-## Agentic Development
+| Fitur | Deskripsi |
+|---|---|
+| Cek Harga (Barcode) | Pindai barcode dengan kamera atau cari nama produk untuk melihat harga jual. |
+| Produk & Stok | Tambah, ubah, dan hapus produk; catat barang masuk; penyesuaian stok; batalkan riwayat stok. |
+| Catatan Transaksi | Catat penjualan dan pengeluaran; stok berkurang otomatis saat penjualan; transaksi dapat dibatalkan (void). |
+| Laporan Keuangan | Ringkasan pemasukan, pengeluaran, dan keuntungan per periode. |
+| Analisis Harga | Rekomendasi harga jual dari harga modal dan margin keuntungan. |
+| Analisis Stok & Penjualan | Mengidentifikasi produk cepat dan lambat terjual. |
+| Rekomendasi Diskon | Usulan promo untuk produk berpenjualan rendah dengan tetap memperhatikan margin. |
+| Hak Akses Berbasis Peran | `admin` (pemilik) mengakses seluruh fitur; `cashier` (penjaga) menggunakan halaman cek harga. |
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Teknologi
 
-```bash
-composer require laravel/boost --dev
+- **Backend:** PHP 8.3+, Laravel 13
+- **Basis data:** MySQL
+- **Frontend:** Blade, Tailwind CSS 4, JavaScript
+- **Build tool:** Vite
+- **Pemindaian barcode:** ZXing (dimuat di browser)
 
-php artisan boost:install
+## Arsitektur Singkat
+
+```
+Browser ──► Route (routes/web.php) ──► Middleware (auth, role)
+                                         │
+                                         ▼
+                               Controller ──► Model (Eloquent) ──► MySQL
+                                         │
+                                         ▼
+                                  View (Blade) ──► Respons ke browser
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Entitas basis data: `users`, `categories`, `products`, `transactions`, `transaction_details`, `stock_movements`, `expenses`, `discounts`. Skema lengkap ada di folder `database/migrations`.
 
-## Contributing
+## Struktur Folder
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```
+app/Http/Controllers/     Logika aplikasi (Auth, Product, Transaction, Cashier, dll.)
+app/Http/Middleware/      RoleMiddleware (pembatasan akses admin / cashier)
+app/Models/               Model Eloquent
+database/migrations/      Skema basis data
+database/seeders/         Data awal (akun demo dan kategori)
+resources/views/          Tampilan Blade (admin, worker, auth, components)
+routes/web.php            Definisi rute
+public/                   Aset publik dan entry point
+```
 
-## Code of Conduct
+## Cara Menjalankan Secara Lokal
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Prasyarat
 
-## Security Vulnerabilities
+- PHP 8.3 atau lebih baru
+- Composer
+- Node.js dan npm
+- MySQL
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Langkah
 
-## License
+```bash
+# 1. Kloning repositori
+git clone https://github.com/Wandiapriansyah/Mantou.git
+cd Mantou
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# 2. Pasang dependensi
+composer install
+npm install
+
+# 3. Siapkan environment
+cp .env.example .env
+php artisan key:generate
+```
+
+Buka file `.env`, lalu sesuaikan koneksi basis data:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=mantou
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Buat basis data kosong bernama `mantou` di MySQL, lalu lanjutkan:
+
+```bash
+# 4. Migrasi dan data awal
+php artisan migrate --seed
+
+# 5. Build aset dan jalankan
+npm run build
+php artisan serve
+```
+
+Aplikasi dapat dibuka di `http://127.0.0.1:8000`.
+
+## Akun Demo
+
+Akun berikut dibuat oleh seeder untuk keperluan penjurian dan pengujian:
+
+| Peran | Email | Kata sandi |
+|---|---|---|
+| Admin (pemilik) | `admin@mantou.com` | `admin123` |
+| Penjaga (cashier) | `Udydaya@mantou.com` | `jaga123` |
+
+> Akun ini hanya untuk demo. Ganti kata sandi sebelum digunakan pada lingkungan produksi.
+
+## Rute Utama
+
+| Rute | Akses | Fungsi |
+|---|---|---|
+| `/` | Publik | Halaman landing |
+| `/login` | Tamu | Halaman masuk |
+| `/dashboard` | Admin | Ringkasan usaha |
+| `/produk-stok` | Login | Produk dan stok |
+| `/catatan-transaksi` | Admin | Catatan penjualan dan pengeluaran |
+| `/cek-harga` | Admin | Cek harga (admin) |
+| `/kasir` | Penjaga | Cek harga (penjaga) |
+| `/laporan-keuangan` | Admin | Laporan keuangan |
+| `/analisis-harga` | Admin | Analisis harga |
+| `/analisis-stok-penjualan` | Admin | Analisis stok dan penjualan |
+| `/rekomendasi-diskon` | Admin | Rekomendasi diskon |
+
+## Status Pengembangan
+
+- **Terhubung ke basis data:** login dan peran, Produk & Stok, Catatan Transaksi, dan Cek Harga barcode.
+- **Menggunakan data contoh di browser:** Dashboard, Laporan Keuangan, Analisis Harga, Analisis Stok & Penjualan, dan Rekomendasi Diskon saat ini membaca data contoh dari `public/mantou-store.js` (tersimpan di localStorage), belum dari basis data.
+- **Belum selesai:** modul pengelolaan pengguna, kategori, dan diskon (rute sudah ada, tampilan belum tersedia).
+
+## Rencana Pengembangan
+
+1. Menghubungkan seluruh laporan dan analisis ke basis data.
+2. Dukungan multi-cabang dan multi-usaha dengan dashboard terpusat.
+3. Integrasi pembayaran digital (QRIS) untuk menyelaraskan data pembayaran dengan catatan keuangan.
+4. Rekomendasi diskon yang lebih adaptif berdasarkan sisa stok, lama penyimpanan, dan kecepatan penjualan.
+
+## Tim
+
+**Tim NaWaR as RTRw**
+
+1. Wandi Apriansyah
+2. Nurkalam Abdurrahman
+3. Muhammad Rafli
+
+## Lisensi
+
+Dibuat untuk keperluan kompetisi GTNIC 2026. Kerangka dasar menggunakan [Laravel](https://laravel.com), berlisensi MIT.
