@@ -57,7 +57,12 @@
 @push('scripts')
 <script>
   (function () {
-    var M = window.Mantou, rp = M.fmt.rupiah;
+    var products = @json($recommendationProducts);
+    var transactions = @json($recommendationTransactions);
+
+    var rp = function (n) {
+        return 'Rp' + Math.round(Number(n) || 0).toLocaleString('id-ID');
+    };
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
     var pct1 = function (n) { return (Math.round(n * 10) / 10).toString().replace('.', ','); };
@@ -68,25 +73,157 @@
     function suggestWhy(x) { return 'Stok ' + x.p.stock + ' unit dengan penjualan ' + x.sold + ' unit selama ' + x.days + ' hari' + (x.cover === Infinity ? ' (belum ada yang terjual)' : ' — cukup sekitar ' + pct1(x.cover) + ' hari') + '. '; }
     function gm(price, cost) { return price > 0 ? (price - cost) / price * 100 : 0; }
 
+    function range(p) {
+      var now = new Date();
+      var y = now.getFullYear();
+      var m = now.getMonth();
+      var d = now.getDate();
+
+      var days = p === '14' ? 14 : p === '30' ? 30 : p === 'month' ? d : 7;
+
+      var start = new Date(y, m, d - days + 1);
+      var from = start.getTime();
+      var to = new Date(y, m, d + 1).getTime() - 1;
+
+      var formatter = new Intl.DateTimeFormat('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+      });
+
+      return {
+          key: p,
+          from: from,
+          to: to,
+          days: days,
+          label: formatter.format(start) + ' – ' + formatter.format(new Date(to))
+      };
+    }
+
+    function suggestDiscount(p) {
+        var margin = gm(p.price, p.cost);
+
+        if (margin < 8) return 0;
+
+        return Math.max(5, Math.min(15, Math.round(margin * 0.4)));
+    }
+
+    function discounted(price, pct) {
+        return Math.round(price * (1 - pct / 100) / 100) * 100;
+    }
+
+    function shortDate(ts) {
+        return new Intl.DateTimeFormat('id-ID', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        }).format(new Date(ts));
+    }
+
+    function soldUnits(from, to) {
+        var result = {};
+
+        transactions.forEach(function (t) {
+            if (t.type !== 'sale' || t.ts < from || t.ts > to) return;
+
+            t.items.forEach(function (item) {
+                result[item.pid] = (result[item.pid] || 0) + item.qty;
+            });
+        });
+
+        return result;
+    }
+
+    function analyze(r, coverDays) {
+        var sold = soldUnits(r.from, r.to);
+        var DAY = 86400000;
+        var firstSale = Infinity;
+
+        transactions.forEach(function (t) {
+            if (t.type === 'sale' && t.ts < firstSale) {
+                firstSale = t.ts;
+            }
+        });
+
+        var effectiveDays = firstSale === Infinity
+            ? r.days
+            : Math.max(
+                1,
+                Math.min(
+                    r.days,
+                    Math.ceil((r.to - Math.max(r.from, firstSale)) / DAY) + 1
+                )
+            );
+
+        var list = products.map(function (p) {
+            var units = sold[p.id] || 0;
+            var rate = units / effectiveDays;
+
+            return {
+                p: p,
+                sold: units,
+                rate: rate,
+                days: effectiveDays,
+                cover: rate > 0
+                    ? p.stock / rate
+                    : (p.stock > 0 ? Infinity : 0),
+                move: 'normal'
+            };
+        });
+
+        var fast = list
+            .filter(function (x) {
+                return x.sold > 0;
+            })
+            .sort(function (a, b) {
+                return b.sold - a.sold;
+            })
+            .slice(0, 3);
+
+        list.forEach(function (x) {
+            if (x.p.stock > 0 && x.p.stock >= x.p.min && x.cover > coverDays) {
+                x.move = 'lambat';
+            } else if (fast.indexOf(x) !== -1) {
+                x.move = 'cepat';
+            }
+        });
+
+        return list;
+    }
+
     function render() {
-      var R = M.range($('per').value), A = M.analyze(R, +$('cover').value), s = M.get();
-      slowList = A.filter(function (x) { return x.move === 'lambat' && !x.p.promo; }).sort(function (a, b) { return (b.cover === Infinity ? 1e9 : b.cover) - (a.cover === Infinity ? 1e9 : a.cover); });
-      var ok = slowList.filter(function (x) { return M.suggestDiscount(x.p) > 0; }), thin = slowList.length - ok.length;
+      var R = range($('per').value);
+      var A = analyze(R, +$('cover').value);
+
+      slowList = A.filter(function (x) {
+          return x.move === 'lambat' && !x.p.promo;
+      }).sort(function (a, b) {
+          return (b.cover === Infinity ? 1e9 : b.cover) -
+              (a.cover === Infinity ? 1e9 : a.cover);
+      });
+
+      var ok = slowList.filter(function (x) {
+          return suggestDiscount(x.p) > 0;
+      });
+
+      var thin = slowList.length - ok.length;
       var st = 0, u = 0; slowList.forEach(function (x) { st += x.p.stock; u += x.sold; });
       $('banner').innerHTML = '<span class="mt-0.5 text-brand-dark">' + ICON('<circle cx="12" cy="12" r="8.5"/><path d="M9 15l6-6"/><circle cx="9.5" cy="9.5" r=".8"/><circle cx="14.5" cy="14.5" r=".8"/>') + '</span><div><p class="text-[13px] font-bold">' + (slowList.length ? slowList.length + ' produk untuk ditinjau, bukan diskon otomatis' : 'Belum ada produk yang perlu didiskon') + '</p><p class="mt-1 text-[12px] text-muted">' + (slowList.length ? 'Stok gabungan ' + st + ' unit, terjual ' + u + ' unit pada ' + R.label.replace(/ \d{4}$/, '') + '. ' + (thin ? thin + ' produk bermargin tipis tidak disarankan didiskon. ' : '') : 'Tidak ada produk dengan stok di atas minimum yang cukup lebih dari ' + $('cover').value + ' hari. Ubah batas stok atau periode di atas untuk meninjau ulang. ') + 'Usulan mempertimbangkan stok, riwayat penjualan, dan margin. Hasil penjualan tidak dijamin; keputusan akhir tetap milik pemilik.</p></div>';
 
       if (!sel || !ok.some(function (x) { return x.p.id === sel; })) sel = ok.length ? ok[0].p.id : '';
       $('cards').innerHTML = slowList.slice(0, 6).map(function (x) {
-        var p = x.p, pc = M.suggestDiscount(p), np = M.discounted(p.price, pc), on = p.id === sel;
+        var p = x.p, pc = suggestDiscount(p), np = discounted(p.price, pc), on = p.id === sel;
         return '<section class="rounded-xl ' + (on ? 'border-2 border-brand' : 'border border-line') + ' bg-surface p-5"><div class="flex items-center justify-between"><span class="rounded-md border border-warning bg-warn-bg px-2.5 py-1 text-[12px] font-bold text-warn">Gerak lambat</span><span class="text-[12px] text-muted">Belum diterapkan</span></div><h2 class="mt-5 text-[18px] font-semibold">' + esc(p.name) + '</h2><p class="mt-2 text-[12px] text-muted">Stok ' + p.stock + ' unit · terjual ' + x.sold + ' unit / ' + x.days + ' hari</p><div class="mt-4 flex justify-between text-[12px]"><span class="text-muted">Harga saat ini</span><b>' + rp(p.price) + '</b></div>' +
           (pc ? '<div class="mt-3 rounded-lg bg-tint p-4"><div class="flex justify-between text-[12px] text-muted"><span>Usulan diskon ' + pc + '%</span></div><p class="mt-2 text-[26px] font-bold text-brand-dark">' + rp(np) + '</p></div><div class="mt-4 flex flex-col gap-1.5 text-[12px] text-muted"><div class="flex justify-between"><span>Biaya perolehan / unit</span><b class="font-semibold text-ink">' + rp(p.cost) + '</b></div><div class="flex justify-between"><span>Sisa laba kotor / unit</span><b class="text-brand-dark">' + rp(np - p.cost) + '</b></div><div class="flex justify-between"><span>Margin kotor tersisa</span><b class="text-brand-dark">' + pct1(gm(np, p.cost)) + '%</b></div></div><button type="button" data-pick="' + p.id + '" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg ' + (on ? 'bg-tint text-brand-dark' : 'border border-line hover:border-brand') + ' px-4 py-2.5 text-[13px] font-bold">' + (on ? 'Sedang ditinjau' : 'Tinjau usulan') + '</button>'
                : '<div class="mt-3 rounded-lg border border-warning bg-warn-bg p-4 text-[12px] font-semibold text-warn">Margin terlalu tipis (' + pct1(gm(p.price, p.cost)) + '%). Diskon tidak disarankan; pertimbangkan jumlah beli atau tinjau harga.</div><a href="/analisis-harga?pid=' + p.id + '" class="mt-4 inline-block text-[12px] font-bold text-brand-dark hover:underline">Buka analisis harga →</a>') + '</section>';
       }).join('');
 
-      var act = s.products.filter(function (p) { return p.promo; });
+      var act = products.filter(function (p) {
+          return p.promo;
+      });
       $('activeSec').classList.toggle('hidden', !act.length);
       $('activeList').innerHTML = act.map(function (p, i) {
-        return '<li class="flex flex-wrap items-center justify-between gap-3 py-3.5 text-[13px]' + (i ? ' border-t border-line' : '') + '"><span><b>' + esc(p.name) + '</b><span class="block text-[12px] text-muted">Diskon ' + p.promo.pct + '% sejak ' + M.fmt.shortDate(p.promo.ts) + ' · harga normal ' + rp(p.promo.base) + ' → ' + rp(p.price) + '</span></span><button type="button" data-rev="' + p.id + '" class="rounded-lg border border-line px-3.5 py-2 text-[12px] font-bold hover:border-brand">Kembalikan harga ' + rp(p.promo.base) + '</button></li>';
+        return '<li class="flex flex-wrap items-center justify-between gap-3 py-3.5 text-[13px]' + (i ? ' border-t border-line' : '') + '"><span><b>' + esc(p.name) + '</b><span class="block text-[12px] text-muted">Diskon ' + p.promo.pct + '% sejak ' + shortDate(p.promo.ts) + ' · harga normal ' + rp(p.promo.base) + ' → ' + rp(p.price) + '</span></span><button type="button" data-rev="' + p.id + '" class="rounded-lg border border-line px-3.5 py-2 text-[12px] font-bold hover:border-brand">Kembalikan harga ' + rp(p.promo.base) + '</button></li>';
       }).join('');
       review(ok);
     }
@@ -95,13 +232,13 @@
       var x = ok.filter(function (y) { return y.p.id === sel; })[0]; cur = x || null;
       $('tinjau').classList.toggle('hidden', !x); if (!x) return;
       var p = x.p; $('rvSub').textContent = p.name + (p.barcode ? ' · ' + p.barcode : '');
-      $('dPct').value = M.suggestDiscount(p); $('ack').checked = false;
+      $('dPct').value = suggestDiscount(p); $('ack').checked = false;
       $('rvWhy').textContent = suggestWhy(x) + 'Diskon dihitung sekitar 40% dari margin kotor saat ini (' + pct1(gm(p.price, p.cost)) + '%), maksimum 15%.';
       $('rvPriceLink').href = '/analisis-harga?pid=' + p.id;
       calc();
     }
     function calc() {
-      if (!cur) return; var p = cur.p, pc = Number($('dPct').value), okp = pc >= 1 && pc <= 50, np = okp ? M.discounted(p.price, pc) : 0, low = okp && np <= p.cost;
+      if (!cur) return; var p = cur.p, pc = Number($('dPct').value), okp = pc >= 1 && pc <= 50, np = okp ? discounted(p.price, pc) : 0, low = okp && np <= p.cost;
       $('dPrice').textContent = okp ? np.toLocaleString('id-ID') : '—';
       $('rvCalc').textContent = okp ? rp(p.price) + ' – (' + pc + '% × ' + rp(p.price) + ') = ' + rp(np) + ' (dibulatkan ke Rp100). Harga tersimpan tetap ' + rp(p.price) + ' sampai Anda menerapkan perubahan.' : 'Isi diskon antara 1% dan 50%.';
       $('rvMargin').textContent = okp ? rp(np) + ' – ' + rp(p.cost) + ' = ' + rp(np - p.cost) + ' per unit · Margin kotor: ' + pct1(gm(np, p.cost)) + '%' + (low ? ' — tidak boleh sama dengan atau di bawah biaya perolehan!' : '') : '';
@@ -111,21 +248,107 @@
     }
     $('dPct').addEventListener('input', calc); $('ack').addEventListener('change', calc);
     $('btnApply').onclick = function () {
-      if (!cur) return; var pc = Number($('dPct').value), r = M.applyPrice(cur.p.id, M.discounted(cur.p.price, pc), pc);
-      if (!r.ok) { alert(r.error); return; } toast('Harga ' + r.product.name + ' sekarang ' + rp(r.product.price) + ' (diskon ' + pc + '%)'); render();
+        if (!cur) return;
+
+        var pc = Number($('dPct').value);
+
+        fetch('/rekomendasi-diskon/' + cur.p.id + '/apply', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                discount_value: pc
+            })
+        })
+        .then(function (response) {
+            return response.json().then(function (data) {
+                if (!response.ok) {
+                    throw new Error(data.message || 'Gagal menerapkan diskon.');
+                }
+
+                return data;
+            });
+        })
+        .then(function (data) {
+            cur.p.price = data.price;
+            cur.p.promo = {
+                pct: pc,
+                base: data.base_price,
+                ts: Date.now()
+            };
+
+            toast('Diskon berhasil diterapkan pada ' + cur.p.name);
+            render();
+        })
+        .catch(function (error) {
+            alert(error.message);
+        });
     };
     $('btnSkip').onclick = function () {
-      var ok = slowList.filter(function (y) { return M.suggestDiscount(y.p) > 0; }), i = ok.findIndex(function (y) { return y.p.id === sel; });
-      if (ok.length > 1) { sel = ok[(i + 1) % ok.length].p.id; render(); } else toast('Tidak ada usulan lain untuk ditinjau.');
+        var ok = slowList.filter(function (y) {
+            return suggestDiscount(y.p) > 0;
+        });
+
+        var i = ok.findIndex(function (y) {
+            return y.p.id === sel;
+        });
+
+        if (ok.length > 1) {
+            sel = ok[(i + 1) % ok.length].p.id;
+            render();
+        } else {
+            toast('Tidak ada usulan lain untuk ditinjau.');
+        }
     };
     $('cards').addEventListener('click', function (e) { var b = e.target.closest('[data-pick]'); if (!b) return; sel = b.getAttribute('data-pick'); render(); $('tinjau').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     $('activeList').addEventListener('click', function (e) {
-      var b = e.target.closest('[data-rev]'); if (!b) return;
-      var r = M.revertPromo(b.getAttribute('data-rev')); if (r.ok) { toast('Harga ' + r.product.name + ' dikembalikan ke ' + rp(r.product.price)); render(); }
+        var b = e.target.closest('[data-rev]');
+        if (!b) return;
+
+        var id = b.getAttribute('data-rev');
+
+        fetch('/rekomendasi-diskon/' + id + '/revert', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(function (response) {
+            return response.json().then(function (data) {
+                if (!response.ok) {
+                    throw new Error(data.message || 'Gagal mengembalikan harga.');
+                }
+
+                return data;
+            });
+        })
+        .then(function (data) {
+            var product = products.find(function (p) {
+                return String(p.id) === String(id);
+            });
+
+            if (product) {
+                product.price = data.price;
+                product.promo = null;
+            }
+
+            toast('Harga produk berhasil dikembalikan.');
+            render();
+        })
+        .catch(function (error) {
+            alert(error.message);
+        });
     });
     var P0 = qs.get('p'); if (P0) $('per').value = P0; if (!$('per').value) $('per').value = '7';
-    ['per', 'cover'].forEach(function (id) { $(id).addEventListener('change', render); });
-    M.onChange(render); render();
+    ['per', 'cover'].forEach(function (id) {
+        $(id).addEventListener('change', render);
+    });
+
+    render();
   })();
 </script>
 @endpush

@@ -40,10 +40,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/catatan-transaksi/pengeluaran', [TransactionController::class, 'storeExpense'])->name('catatan-transaksi.expense.store');
         Route::delete('/catatan-transaksi/{type}/{id}', [TransactionController::class, 'void'])->name('catatan-transaksi.void');
         Route::get('/laporan-keuangan', [TransactionController::class, 'laporanKeuangan'])->name('laporan-keuangan');
-
-        Route::get('rekomendasi-diskon', function () {
-            return view('admin.rekomendasi-diskon');
-        });
+        Route::get('rekomendasi-diskon', [DiscountController::class, 'rekomendasi'])->name('rekomendasi-diskon');
+        Route::post('/rekomendasi-diskon/{product}/apply', [DiscountController::class, 'apply'])->name('rekomendasi-diskon.apply');
+        Route::post('/rekomendasi-diskon/{product}/revert', [DiscountController::class, 'revert'])->name('rekomendasi-diskon.revert');
     });
     Route::middleware('role:cashier')->group(function () {
         Route::get('/kasir', [CashierController::class, 'index'])->name('kasir.index');
