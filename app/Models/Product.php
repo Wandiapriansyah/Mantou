@@ -36,7 +36,7 @@ class Product extends Model
 
     public function trasaction_details(): HasMany
     {
-        return $this->hasMany(TransactionDetails::class, 'product_id');
+        return $this->hasMany(TransactionDetail::class, 'product_id');
     }
 
     public function stockMovements(): HasMany

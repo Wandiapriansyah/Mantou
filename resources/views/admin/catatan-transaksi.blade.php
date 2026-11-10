@@ -98,20 +98,26 @@
         <p class="mt-3 text-[12px] leading-relaxed text-muted">Barang masuk dicatat melalui <a href="/produk-stok" class="font-semibold text-brand-dark underline">Produk &amp; stok</a>, bukan sebagai penjualan.</p>
       </x-ui.card>
 
-      <x-ui.card title="Data contoh" title-size="text-[15px]">
+      {{-- <x-ui.card title="Data contoh" title-size="text-[15px]">
         <p class="mt-2 text-[12px] leading-relaxed text-muted">Catatan disimpan di browser ini saja (tanpa server) dan langsung terbaca oleh Laporan keuangan.</p>
         <div class="mt-4 flex flex-wrap gap-2.5">
           <x-forms.button id="resetData" size="sm" class="text-brand-dark">Kembalikan data contoh</x-forms.button>
           <x-forms.button id="clearData" size="sm" class="text-muted">Kosongkan catatan</x-forms.button>
         </div>
-      </x-ui.card>
+      </x-ui.card> --}}
     </div>
   </div>
 
 @push('scripts')
 <script>
   (function () {
-    var M = window.Mantou, rp = M.fmt.rupiah;
+    var rp = function (value) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0
+      }).format(Number(value) || 0);
+    };
     var transactions = {{ Illuminate\Support\Js::from($transactions) }};
     var expenses = {{ Illuminate\Support\Js::from($expenses) }};
     var products = {{ Illuminate\Support\Js::from(
@@ -215,7 +221,7 @@
                 types++;
                 units += qty;
                 rev += p.price * qty;
-                parts.push(M.shortName(p.name) + ' menjadi ' + (p.stock - qty));
+                parts.push(p.name + ' menjadi ' + (p.stock - qty));
             } else {
                 bad = true;
                 sub.textContent = '—';
@@ -272,10 +278,19 @@
     $('saleForm').addEventListener('input', function () { hideDone('saleDone'); });
     $('expForm').addEventListener('input', function () { hideDone('expDone'); });
 
-    function resetSale() { rows = [{ pid: '', qty: 1 }]; $('saleNote').value = ''; $('saleTs').value = M.fmt.isoLocal(Date.now()); renderRows(); }
+    function resetSale() {
+      rows = [{ pid: '', qty: 1 }];
+      $('saleNote').value = '';
+      $('saleTs').value = (function () {
+        var d = new Date();
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().slice(0, 16);
+      })();
+      renderRows();
+    }
     $('saleCancel').onclick = resetSale;
     $('saleSave').onclick = async function () {
-      var ts = M.fmt.parseDT($('saleTs').value);
+      var ts = new Date($('saleTs').value).getTime();
 
       if (ts > Date.now() + 60000) {
           showErr('saleErr', 'Waktu penjualan tidak boleh di masa depan.');
@@ -341,10 +356,22 @@
       e.target.value = d ? d.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : ''; refreshExp();
     });
     $('expCat').addEventListener('change', refreshExp);
-    function resetExp() { $('expTs').value = M.fmt.isoLocal(Date.now()); ['expCat', 'expAmt', 'expDesc', 'expNote'].forEach(function (id) { $(id).value = ''; }); refreshExp(); }
+    function resetExp() {
+      $('expTs').value = (function () {
+        var d = new Date();
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().slice(0, 16);
+      })();
+
+      ['expCat', 'expAmt', 'expDesc', 'expNote'].forEach(function (id) {
+        $(id).value = '';
+      });
+
+      refreshExp();
+    }
     $('expCancel').onclick = resetExp;
     $('expSave').onclick = function () {
-        var ts = M.fmt.parseDT($('expTs').value);
+        var ts = new Date($('expTs').value).getTime();
 
         if (ts > Date.now() + 60000) {
             showErr('expErr', 'Waktu pengeluaran tidak boleh di masa depan.');
@@ -366,7 +393,7 @@
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
             body: JSON.stringify({
-                expense_date: $('expTs').value.replace('T', ' ') + ':00',
+                expense_date: new Date(ts).toISOString().slice(0, 19).replace('T', ' '),
                 category: $('expCat').value,
                 amount: amount,
                 description: $('expDesc').value.trim(),
@@ -392,7 +419,28 @@
         });
     };
 
-    function stamp(ts) { return M.fmt.dateInput(ts) === M.fmt.dateInput(Date.now()) ? M.fmt.time(ts) : M.fmt.dateTime(ts); }
+    function stamp(ts) {
+      var date = new Date(ts);
+      var today = new Date();
+
+      var sameDay =
+        date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear();
+
+      return sameDay
+        ? date.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        : date.toLocaleString('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+    }
 
     function renderRecent() {
         var list = [];
@@ -506,10 +554,6 @@
             toast(error.message);
         });
     });
-
-    $('resetData').onclick = function () { if (confirm('Kembalikan semua data ke data contoh? Catatan yang kamu buat akan hilang.')) { M.reset(); resetSale(); renderRecent(); toast('Data contoh dikembalikan'); } };
-    $('clearData').onclick = function () { if (confirm('Kosongkan semua catatan transaksi?')) { M.clear(); resetSale(); renderRecent(); toast('Semua catatan dikosongkan'); } };
-    M.onChange(function () { renderRows(); renderRecent(); });
 
     resetSale(); resetExp(); renderRecent();
   })();
