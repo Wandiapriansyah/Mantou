@@ -312,7 +312,7 @@
       }
 
       try {
-          var response = await fetch(@json(route('catatan-transaksi.sale.store')), {
+          var response = await fetch(@json(route('catatan-transaksi.sale.store', [], false)), {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',

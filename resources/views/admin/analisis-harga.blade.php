@@ -94,21 +94,32 @@
 @push('scripts')
 <script>
   (function () {
-    var M = window.Mantou, rp = M.fmt.rupiah;
+    var rp = function (n) {
+        return 'Rp' + Number(n || 0).toLocaleString('id-ID');
+    };
+
+    var products = @json($analysisProducts);
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
     var pct1 = function (n) { return (Math.round(n * 10) / 10).toString().replace('.', ','); };
     var qs = new URLSearchParams(location.search);
     var ICON = function (d) { return '<svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
 
-    var pid = qs.get('pid') || '', hint = M.extraCostHint();
-    function prod() { var s = M.get(); return M.find(s.products, pid) || s.products[0] || null; }
+    var pid = qs.get('pid') || '', hint = { total: 0, units: 0, perUnit: 0 };
+
+    function prod() {
+        return products.find(function (p) {
+            return String(p.id) === String(pid);
+        }) || products[0] || null;
+    }
     function num(id) { var v = Number($(id).value); return v >= 0 ? v : 0; }
     function loadProduct(keep) {
       var p = prod(); $('body').classList.toggle('hidden', !p); $('cmp').classList.toggle('hidden', !p); $('empty').classList.toggle('hidden', !!p);
       if (!p) { $('pSel').innerHTML = ''; $('pMeta').textContent = ''; $('curPrice').textContent = '—'; return; }
       pid = p.id;
-      $('pSel').innerHTML = M.get().products.map(function (x) { return '<option value="' + x.id + '"' + (x.id === pid ? ' selected' : '') + '>' + esc(x.name) + '</option>'; }).join('');
+      $('pSel').innerHTML = products.map(function (x) {
+          return '<option value="' + x.id + '"' + (String(x.id) === String(pid) ? ' selected' : '') + '>' + esc(x.name) + '</option>';
+      }).join('');
       $('pMeta').textContent = (p.barcode ? p.barcode + ' · ' : '') + p.category + ' · stok ' + p.stock + ' ' + p.unit + (p.promo ? ' · diskon ' + p.promo.pct + ' persen berjalan' : '');
       $('curPrice').textContent = rp(p.price); $('pLink').href = '/produk-stok?cari=' + encodeURIComponent(p.barcode || p.name);
       $('discLink').href = '/rekomendasi-diskon?pid=' + p.id;
@@ -135,15 +146,51 @@
     }
     ['iCost', 'iExtra', 'iMk'].forEach(function (id) { $(id).addEventListener('input', calc); });
     $('iRound').addEventListener('change', calc);
-    $('pSel').addEventListener('change', function () { pid = this.value; hint = M.extraCostHint(); loadProduct(false); });
-    $('btnReset').onclick = function () { hint = M.extraCostHint(); loadProduct(false); };
-    $('btnApply').onclick = function () {
-      var p = prod(), rec = $('rec').textContent;
-      if (!confirm('Tetapkan harga jual ' + p.name + ' dari ' + rp(p.price) + ' menjadi ' + rec + '? Harga di Cek harga dan Produk & stok ikut berubah.')) return;
-      var r = M.applyPrice(p.id, Number(rec.replace(/\D/g, '')), 0);
-      if (!r.ok) { alert(r.error); return; } toast('Harga ' + p.name + ' sekarang ' + rec); loadProduct(true);
+    $('pSel').addEventListener('change', function () {
+        pid = this.value;
+        loadProduct(false);
+    });
+    $('btnReset').onclick = function () {
+        loadProduct(false);
     };
-    M.onChange(function () { loadProduct(true); });
+    $('btnApply').onclick = async function () {
+        var p = prod();
+        var rec = $('rec').textContent;
+        var newPrice = Number(rec.replace(/\D/g, ''));
+
+        if (!confirm('Tetapkan harga jual ' + p.name + ' dari ' + rp(p.price) + ' menjadi ' + rec + '? Harga di Cek harga dan Produk & stok ikut berubah.')) {
+            return;
+        }
+
+        try {
+            var response = await fetch('/produk-stok/' + p.id + '/harga', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    selling_price: newPrice
+                })
+            });
+
+            var result = await response.json();
+
+            if (!response.ok) {
+                alert(result.message || 'Gagal memperbarui harga.');
+                return;
+            }
+
+            p.price = result.price;
+            toast('Harga ' + p.name + ' sekarang ' + rp(result.price));
+            loadProduct(true);
+
+        } catch (error) {
+            alert('Terjadi kesalahan saat menghubungi server.');
+            console.error(error);
+        }
+    };
     loadProduct(false);
   })();
 </script>
