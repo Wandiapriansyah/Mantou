@@ -47,9 +47,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/catatan-transaksi/pengeluaran', [TransactionController::class, 'storeExpense'])->name('catatan-transaksi.expense.store');
         Route::delete('/catatan-transaksi/{type}/{id}', [TransactionController::class, 'void'])->name('catatan-transaksi.void');
 
-        Route::get('laporan-keuangan', function () {
-            return view('admin.laporan-keuangan');
-        });
+        Route::get('/laporan-keuangan', [TransactionController::class, 'laporanKeuangan'])->name('laporan-keuangan');
 
         Route::get('rekomendasi-diskon', function () {
             return view('admin.rekomendasi-diskon');

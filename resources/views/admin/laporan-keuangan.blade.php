@@ -62,8 +62,14 @@
 @push('scripts')
 <script>
   (function () {
-    var M = window.Mantou, rp = M.fmt.rupiah, F = M.fmt, DAY = 86400000;
+    window.ReportData = {
+        transactions: @json($reportTransactions)
+    };
+
     var $ = function (id) { return document.getElementById(id); };
+    var rp = function (value) {
+        return 'Rp' + Math.round(Number(value) || 0).toLocaleString('id-ID');
+    };
     var esc = function (t) { return String(t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
     var range = null, limit = 10, shown = [];
     var TITLES = { today: 'Laporan harian', '7': 'Laporan mingguan', '30': 'Laporan 30 hari', month: 'Laporan bulanan', custom: 'Laporan periode' };
@@ -77,19 +83,71 @@
       return [f, t];
     }
     function rangeLabel(f, t) {
-      var a = new Date(f), b = new Date(t);
-      if (f === t) return F.longDate(f);
-      if (a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()) return a.getDate() + '–' + b.getDate() + ' ' + F.monthName(b.getMonth()) + ' ' + b.getFullYear();
-      if (a.getFullYear() === b.getFullYear()) return a.getDate() + ' ' + F.monthShort(a.getMonth()) + ' – ' + b.getDate() + ' ' + F.monthShort(b.getMonth()) + ' ' + b.getFullYear();
-      return F.longDate(f) + ' – ' + F.longDate(t);
+        var a = new Date(f);
+        var b = new Date(t);
+
+        var longDate = function (ts) {
+            return new Date(ts).toLocaleDateString('id-ID', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        };
+
+        var monthName = function (ts) {
+            return new Date(ts).toLocaleDateString('id-ID', {
+                month: 'long'
+            });
+        };
+
+        var monthShort = function (ts) {
+            return new Date(ts).toLocaleDateString('id-ID', {
+                month: 'short'
+            });
+        };
+
+        if (f === t) return longDate(f);
+
+        if (a.getFullYear() === b.getFullYear() &&
+            a.getMonth() === b.getMonth()) {
+            return a.getDate() + '–' + b.getDate() + ' ' +
+                monthName(t) + ' ' + b.getFullYear();
+        }
+
+        if (a.getFullYear() === b.getFullYear()) {
+            return a.getDate() + ' ' + monthShort(f) +
+                ' – ' + b.getDate() + ' ' +
+                monthShort(t) + ' ' + b.getFullYear();
+        }
+
+        return longDate(f) + ' – ' + longDate(t);
     }
 
     function apply() {
-      var f = F.parseDate($('from').value), t = F.parseDate($('to').value);
-      if (isNaN(f) || isNaN(t)) return;
-      if (f > t) { var x = f; f = t; t = x; $('from').value = F.dateInput(f); $('to').value = F.dateInput(t); }
-      range = { from: f, to: addDays(t, 1) - 1, fromDay: f, toDay: t };
-      limit = 10; render();
+        var f = new Date($('from').value + 'T00:00:00').getTime();
+        var t = new Date($('to').value + 'T00:00:00').getTime();
+
+        if (isNaN(f) || isNaN(t)) return;
+
+        if (f > t) {
+            var x = f;
+            f = t;
+            t = x;
+
+            $('from').value = dateInput(f);
+            $('to').value = dateInput(t);
+        }
+
+        range = {
+            from: f,
+            to: addDays(t, 1) - 1,
+            fromDay: f,
+            toDay: t
+        };
+
+        limit = 10;
+        render();
     }
 
     function niceStep(v) {
@@ -105,7 +163,9 @@
     function sum(list, k) { return list.reduce(function (a, t) { return a + t[k]; }, 0); }
 
     function render() {
-      var all = M.get().tx.filter(function (t) { return t.ts >= range.from && t.ts <= range.to; });
+    var all = (window.ReportData.transactions || []).filter(function (t) {
+        return t.ts >= range.from && t.ts <= range.to;
+    });
       var sales = all.filter(function (t) { return t.type === 'sale'; }), exps = all.filter(function (t) { return t.type === 'expense'; });
       var rev = sum(sales, 'revenue'), cogs = sum(sales, 'cogs'), opex = sum(exps, 'amount'), gross = rev - cogs, net = gross - opex;
 
@@ -128,23 +188,50 @@
       for (var d = first; d <= range.toDay; d = addDays(d, 1)) { days.push(d); map[d] = { rev: 0, opex: 0 }; }
       all.forEach(function (t) { var m = map[dayStart(t.ts)]; if (!m) return; if (t.type === 'sale') m.rev += t.revenue; else m.opex += t.amount; });
       var max = 0; days.forEach(function (d) { max = Math.max(max, map[d].rev, map[d].opex); });
+      var shortDate = function (ts) {
+          return new Date(ts).toLocaleDateString('id-ID', {
+              day: 'numeric',
+              month: 'short'
+          });
+      };
       var step = niceStep(max > 0 ? max / 3 : 100000), top = step * 3;
       $('yAxis').innerHTML = [3, 2, 1, 0].map(function (k) { return '<span>' + axis(step * k) + '</span>'; }).join('');
       var few = days.length <= 8, gap = few ? '1.25rem' : '2px', today = dayStart(Date.now());
       $('bars').style.gap = gap; $('xAxis').style.gap = gap;
       $('bars').innerHTML = days.map(function (d) {
-        var m = map[d], h = function (v) { return v > 0 ? Math.max(2, v / top * 100) : 0; }, lab = F.shortDate(d);
+        var m = map[d], h = function (v) { return v > 0 ? Math.max(2, v / top * 100) : 0; }, lab = shortDate(d);
         return '<div class="flex min-w-0 flex-1 items-end justify-center gap-px">' +
           '<div title="' + lab + ' · Pendapatan ' + rp(m.rev) + '" class="w-full rounded-t-sm bg-brand" style="max-width:34px;height:' + h(m.rev) + '%"></div>' +
           '<div title="' + lab + ' · Beban ' + rp(m.opex) + '" class="w-full rounded-t-sm bg-brand-soft" style="max-width:34px;height:' + h(m.opex) + '%"></div></div>';
       }).join('');
       var every = few ? 1 : Math.ceil(days.length / 7);
       $('xAxis').innerHTML = days.map(function (d, k) {
-        var txt = (k % every === 0) ? (few ? F.shortDate(d) : String(new Date(d).getDate())) : '';
+        var txt = (k % every === 0) ? (few ? shortDate(d) : String(new Date(d).getDate())) : '';
         return '<span class="min-w-0 flex-1 whitespace-nowrap text-center' + (d === today ? ' font-bold text-ink' : '') + '">' + txt + '</span>';
       }).join('');
       $('chartEmpty').classList.toggle('hidden', max > 0); $('chartEmpty').classList.toggle('grid', max === 0);
       $('chartSub').textContent = 'Dalam ribuan Rupiah · ' + rangeLabel(range.fromDay, range.toDay);
+    }
+
+    function shortName(name) {
+        return String(name).split(' ')[0];
+    }
+
+    function reportSummary(tx) {
+        if (tx.type === 'expense') return tx.desc;
+
+        var items = Array.isArray(tx.items) ? tx.items : [];
+
+        if (!items.length) return 'Penjualan';
+
+        if (items.length === 1) return items[0].name;
+
+        if (items.length === 2) {
+            return shortName(items[0].name) + ' & ' + shortName(items[1].name);
+        }
+
+        return shortName(items[0].name) + ', ' +
+            shortName(items[1].name) + ' +' + (items.length - 2);
     }
 
     function renderTable(all) {
@@ -154,8 +241,16 @@
       $('tblSub').textContent = shown.length ? rows.length + ' catatan terbaru dari ' + shown.length + ' pada periode ini' : 'Tidak ada catatan pada periode ini';
       $('tbody').innerHTML = rows.length ? rows.map(function (t) {
         var sale = t.type === 'sale';
-        return '<tr class="border-t border-line"><td class="px-5 py-4 text-[13px]"><b>' + F.dateTime(t.ts) + '</b></td>' +
-          '<td class="px-3 py-4 text-[13px]"><span class="block font-semibold">' + esc(M.summary(t)) + '</span><span class="text-[12px] text-muted">' + t.id + ' · ' + (sale ? t.units + ' unit' : esc(t.category)) + '</span></td>' +
+        return '<tr class="border-t border-line"><td class="px-5 py-4 text-[13px]"><b>' +
+          new Date(t.ts).toLocaleString('id-ID', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+          }) +
+          '</b></td>' +
+          '<td class="px-3 py-4 text-[13px]"><span class="block font-semibold">' + esc(reportSummary(t)) + '</span><span class="text-[12px] text-muted">' + t.id + ' · ' + (sale ? t.units + ' unit' : esc(t.category)) + '</span></td>' +
           '<td class="px-3 py-4 text-[13px]"><span class="inline-block rounded-md px-2.5 py-1 text-[12px] font-bold ' + (sale ? 'bg-tint text-brand-dark' : 'bg-line text-muted') + '">' + (sale ? 'Penjualan' : 'Pengeluaran') + '</span></td>' +
           '<td class="px-3 py-4 text-right text-[13px]">' + (sale ? rp(t.revenue) : '—') + '</td><td class="px-3 py-4 text-right text-[13px]">' + (sale ? rp(t.cogs) : '—') + '</td>' +
           '<td class="px-5 py-4 text-right text-[13px]">' + (sale ? '—' : rp(t.amount)) + '</td></tr>';
@@ -168,26 +263,58 @@
       var lines = [['Tanggal', 'Waktu', 'ID', 'Jenis', 'Keterangan', 'Pendapatan', 'HPP', 'Beban operasional'].map(q).join(',')];
       shown.slice().reverse().forEach(function (t) {
         var sale = t.type === 'sale';
-        lines.push([F.dateInput(t.ts), F.time(t.ts), t.id, sale ? 'Penjualan' : 'Pengeluaran', M.summary(t), sale ? t.revenue : 0, sale ? t.cogs : 0, sale ? 0 : t.amount].map(q).join(','));
+      lines.push([
+          new Date(t.ts).toLocaleDateString('en-CA'),
+          new Date(t.ts).toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+          }),
+          t.id,
+          sale ? 'Penjualan' : 'Pengeluaran',
+          reportSummary(t),
+          sale ? t.revenue : 0,
+          sale ? t.cogs : 0,
+          sale ? 0 : t.amount
+      ].map(q).join(','));
       });
       var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = 'laporan-keuangan_' + F.dateInput(range.fromDay) + '_' + F.dateInput(range.toDay) + '.csv';
+      a.href = URL.createObjectURL(blob);
+      a.download = 'laporan-keuangan_' +
+          new Date(range.fromDay).toLocaleDateString('en-CA') + '_' +
+          new Date(range.toDay).toLocaleDateString('en-CA') + '.csv';
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
     }
 
     $('preset').addEventListener('change', function () {
-      if (this.value === 'custom') return;
-      var r = presetRange(this.value); $('from').value = F.dateInput(r[0]); $('to').value = F.dateInput(r[1]); apply();
+        if (this.value === 'custom') return;
+
+        var r = presetRange(this.value);
+
+        $('from').value = dateInput(r[0]);
+        $('to').value = dateInput(r[1]);
+
+        apply();
     });
     ['from', 'to'].forEach(function (id) { $(id).addEventListener('change', function () { $('preset').value = 'custom'; }); });
     $('applyBtn').onclick = apply;
     $('typeFilter').addEventListener('change', function () { limit = 10; render(); });
     $('moreBtn').onclick = function () { limit += 10; render(); };
     $('exportBtn').onclick = exportCsv;
-    M.onChange(render);
 
-    var r0 = presetRange('7'); $('from').value = F.dateInput(r0[0]); $('to').value = F.dateInput(r0[1]); apply();
+    var r0 = presetRange('7');
+
+    function dateInput(ts) {
+        var d = new Date(ts);
+        return d.getFullYear() + '-' +
+            String(d.getMonth() + 1).padStart(2, '0') + '-' +
+            String(d.getDate()).padStart(2, '0');
+    }
+
+    $('from').value = dateInput(r0[0]);
+    $('to').value = dateInput(r0[1]);
+    apply();
   })();
 </script>
 @endpush

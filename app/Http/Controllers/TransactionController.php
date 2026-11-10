@@ -35,6 +35,63 @@ class TransactionController extends Controller
         ));
     }
 
+    public function laporanKeuangan()
+    {
+        $transactions = Transaction::with([
+            'user',
+            'transactionDetails.product'
+        ])->latest('transaction_date')->get();
+
+        $expenses = Expense::with('user')
+            ->latest('expense_date')
+            ->get();
+
+        $reportTransactions = [];
+
+        foreach ($transactions as $transaction) {
+            $items = $transaction->transactionDetails->map(function ($detail) {
+                $product = $detail->product;
+
+                return [
+                    'name' => $product ? $product->product_name : 'Produk dihapus',
+                    'qty' => (int) $detail->purchase_quantity,
+                    'cost' => (float) ($product->purchase_price ?? 0),
+                    'subtotal' => (float) $detail->subtotal,
+                ];
+            });
+
+            $revenue = $items->sum('subtotal');
+
+            $cogs = $items->sum(function ($item) {
+                return $item['qty'] * $item['cost'];
+            });
+
+            $reportTransactions[] = [
+                'id' => $transaction->id,
+                'type' => 'sale',
+                'ts' => $transaction->transaction_date->timestamp * 1000,
+                'items' => $items->values(),
+                'revenue' => $revenue,
+                'cogs' => $cogs,
+                'units' => $items->sum('qty'),
+            ];
+        }
+
+        foreach ($expenses as $expense) {
+            $reportTransactions[] = [
+                'id' => $expense->id,
+                'type' => 'expense',
+                'ts' => $expense->expense_date->timestamp * 1000,
+                'category' => $expense->category,
+                'desc' => $expense->description ?? $expense->category,
+                'amount' => (float) $expense->amount,
+            ];
+        }
+
+        return view('admin.laporan-keuangan', compact(
+            'reportTransactions'
+        ));
+    }
     
     public function storeSale(Request $request)
     {
