@@ -69,8 +69,154 @@
 @push('scripts')
 <script>
   window.LaravelUser = @json(auth()->user());
+
+  window.DashboardData = {
+      transactions: @json($dashboardTransactions),
+      products: @json($dashboardProducts)
+  };
+
   (function () {
-    var M = window.Mantou, period = '7';
+      var period = '7';
+
+      var M = {
+        fmt: {
+          rupiah: function (value) {
+            return 'Rp ' + Math.round(Number(value) || 0).toLocaleString('id-ID');
+          },
+          shortDate: function (ts) {
+            return new Date(ts).toLocaleDateString('id-ID', {
+              day: 'numeric',
+              month: 'short'
+            });
+          },
+          dateInput: function (ts) {
+            var d = new Date(ts);
+            return d.getFullYear() + '-' +
+              String(d.getMonth() + 1).padStart(2, '0') + '-' +
+              String(d.getDate()).padStart(2, '0');
+          },
+          time: function (ts) {
+            return new Date(ts).toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          },
+          dateTime: function (ts) {
+            return new Date(ts).toLocaleString('id-ID', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          },
+          fullDate: function (ts) {
+            return new Date(ts).toLocaleDateString('id-ID', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            });
+          }
+        }
+      };
+      function summarize(from, to, list) {
+        var filtered = list.filter(function (t) {
+            return t.ts >= from && t.ts <= to;
+        });
+
+        var sales = filtered.filter(function (t) {
+            return t.type === 'sale';
+        });
+
+        var expenses = filtered.filter(function (t) {
+            return t.type === 'expense';
+        });
+
+        var revenue = sales.reduce(function (total, t) {
+            return total + t.revenue;
+        }, 0);
+
+        var cogs = sales.reduce(function (total, t) {
+            return total + t.cogs;
+        }, 0);
+
+        var opex = expenses.reduce(function (total, t) {
+            return total + t.amount;
+        }, 0);
+
+        return {
+            sales: sales,
+            expenses: expenses,
+            saleCount: sales.length,
+            expenseCount: expenses.length,
+            units: sales.reduce(function (total, t) {
+                return total + t.units;
+            }, 0),
+            revenue: revenue,
+            cogs: cogs,
+            gross: revenue - cogs,
+            opex: opex,
+            net: revenue - cogs - opex
+        };
+    }
+    function range(p) {
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = now.getMonth();
+        var date = now.getDate();
+
+        var days = p === 'today' ? 1 : p === 'month' ? date : 7;
+
+        var start = new Date(year, month, date - days + 1);
+        var end = new Date(year, month, date + 1).getTime() - 1;
+
+        var label;
+
+        if (days === 1) {
+            label = M.fmt.fullDate(start.getTime());
+        } else {
+            label = start.getDate() + '–' + date + ' ' +
+                start.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+        }
+
+        return {
+            key: p,
+            from: start.getTime(),
+            to: end,
+            days: days,
+            label: label
+        };
+    }
+    function num(value) {
+        var result = Number(value);
+        return Number.isFinite(result) ? result : 0;
+    }
+    function status(product) {
+        var stock = num(product.stock);
+        var minimum = num(product.min);
+
+        if (stock <= 0) return 'habis';
+        if (stock < minimum) return 'rendah';
+
+        return 'cukup';
+    }
+    function summary(transaction) {
+        if (transaction.type === 'expense') {
+            return transaction.desc || transaction.category || 'Pengeluaran';
+        }
+
+        var items = Array.isArray(transaction.items) ? transaction.items : [];
+
+        if (items.length === 0) return 'Penjualan';
+        if (items.length === 1) return items[0].name;
+        if (items.length === 2) {
+            return items[0].name + ' & ' + items[1].name;
+        }
+
+        return items[0].name + ', ' + items[1].name +
+            ' +' + (items.length - 2);
+    }
     var $ = function (id) { return document.getElementById(id); };
     function setText(id, t) { var el = $(id); if (el) el.textContent = t; }
     function setHtml(id, h) { var el = $(id); if (el) el.innerHTML = h; }
@@ -153,68 +299,169 @@
     }
 
     function stock(products) {
-      var list = Array.isArray(products) ? products.filter(function (p) { return p && typeof p === 'object'; }) : [];
-      var key = function (p) { var st = M.num(p.stock), mn = M.num(p.min); return st <= 0 ? -1 : (mn > 0 ? st / mn : 1); };
-      var low = list.filter(function (p) { return M.status(p) !== 'cukup'; }).sort(function (a, b) { return key(a) - key(b) || String(a.name).localeCompare(String(b.name)); });
-      var badge = $('lowBadge');
-      setText('lowBadge', low.length + ' produk');
-      if (badge) badge.className = 'rounded-md px-2.5 py-1 text-[12px] font-bold ' + (low.length ? 'border border-warning bg-warn-bg text-warn' : 'bg-line text-muted');
-      var rows = low.slice(0, 5).map(function (p, i) {
-        var st = Math.max(0, M.num(p.stock)), mn = M.num(p.min), name = esc(p.name || 'Produk tanpa nama'), unit = p.unit ? ' ' + esc(p.unit) : '';
-        return '<li class="flex items-center gap-3.5 py-3.5' + (i ? ' border-t border-line' : '') + '"><span class="grid size-10 shrink-0 place-items-center rounded-lg border border-warning bg-warn-bg text-[13px] font-bold text-warn">' + st + '</span>' +
-          '<a href="/produk-stok" class="group min-w-0"><span class="block truncate text-[13px] font-bold text-ink group-hover:text-brand-dark group-hover:underline">' + name + '</span><span class="block text-[12px] text-muted">' + (st === 0 ? 'Habis' : st + unit + ' tersisa') + ' · minimum ' + mn + '</span></a></li>';
-      });
-      if (low.length > 5) rows.push('<li class="border-t border-line pt-3.5 text-[12px] text-muted">+' + (low.length - 5) + ' produk lainnya</li>');
-      setHtml('lowList', rows.length ? rows.join('') : '<li class="py-6 text-[12px] text-muted">Semua produk masih di atas batas minimum.</li>');
+        var list = Array.isArray(products)
+            ? products.filter(function (p) {
+                return p && typeof p === 'object';
+            })
+            : [];
+
+        var key = function (p) {
+            var st = num(p.stock);
+            var mn = num(p.min);
+            return st <= 0 ? -1 : (mn > 0 ? st / mn : 1);
+        };
+
+        var low = list.filter(function (p) {
+            return status(p) !== 'cukup';
+        }).sort(function (a, b) {
+            return key(a) - key(b) ||
+                String(a.name).localeCompare(String(b.name));
+        });
+
+        var badge = $('lowBadge');
+        setText('lowBadge', low.length + ' produk');
+
+        if (badge) {
+            badge.className = 'rounded-md px-2.5 py-1 text-[12px] font-bold ' +
+                (low.length
+                    ? 'border border-warning bg-warn-bg text-warn'
+                    : 'bg-line text-muted');
+        }
+
+        var rows = low.slice(0, 5).map(function (p, i) {
+            var st = Math.max(0, num(p.stock));
+            var mn = num(p.min);
+            var name = esc(p.name || 'Produk tanpa nama');
+            var unit = p.unit ? ' ' + esc(p.unit) : '';
+
+            return '<li class="flex items-center gap-3.5 py-3.5' +
+                (i ? ' border-t border-line' : '') +
+                '"><span class="grid size-10 shrink-0 place-items-center rounded-lg border border-warning bg-warn-bg text-[13px] font-bold text-warn">' +
+                st + '</span>' +
+                '<a href="/produk-stok" class="group min-w-0">' +
+                '<span class="block truncate text-[13px] font-bold text-ink group-hover:text-brand-dark group-hover:underline">' +
+                name + '</span>' +
+                '<span class="block text-[12px] text-muted">' +
+                (st === 0 ? 'Habis' : st + unit + ' tersisa') +
+                ' · minimum ' + mn +
+                '</span></a></li>';
+        });
+
+        if (low.length > 5) {
+            rows.push(
+                '<li class="border-t border-line pt-3.5 text-[12px] text-muted">+' +
+                (low.length - 5) + ' produk lainnya</li>'
+            );
+        }
+
+        setHtml(
+            'lowList',
+            rows.length
+                ? rows.join('')
+                : '<li class="py-6 text-[12px] text-muted">Semua produk masih di atas batas minimum.</li>'
+        );
     }
 
     function recent(txs) {
-      var F = M.fmt, rp = F.rupiah, todayK = F.dateInput(Date.now());
-      var list = txs.slice().sort(function (a, b) { return b.ts - a.ts; }).slice(0, 5);
-      setHtml('recentBody', list.length ? list.map(function (t) {
-        var sale = t.type === 'sale', when = F.dateInput(t.ts) === todayK ? F.time(t.ts) : F.dateTime(t.ts);
-        return '<tr class="border-t border-line"><td class="whitespace-nowrap px-5 py-4 text-[13px] font-bold">' + esc(when) + '</td>' +
-          '<td class="px-3 py-4"><span class="block text-[13px] font-bold">' + esc(M.summary(t)) + '</span><span class="block text-[12px] text-muted">' + esc(t.id) + ' · ' + (sale ? Math.round(t.units) + ' unit' : esc(t.category)) + '</span></td>' +
-          '<td class="px-3 py-4 text-[13px] text-muted">' + (sale ? 'Penjualan' : 'Pengeluaran') + '</td>' +
-          '<td class="whitespace-nowrap px-5 py-4 text-right text-[13px] font-semibold">' + (sale ? rp(t.revenue) : rp(-t.amount)) + '</td></tr>';
-      }).join('') : '<tr class="border-t border-line"><td colspan="4" class="px-5 py-8 text-center text-[13px] text-muted">Belum ada catatan. Mulai dari <a href="/catatan-transaksi" class="font-semibold text-brand-dark underline">Catat transaksi</a>.</td></tr>');
+        var F = M.fmt;
+        var rp = F.rupiah;
+        var todayK = F.dateInput(Date.now());
+
+        var list = txs.slice()
+            .sort(function (a, b) {
+                return b.ts - a.ts;
+            })
+            .slice(0, 5);
+
+        setHtml('recentBody', list.length ? list.map(function (t) {
+            var sale = t.type === 'sale';
+            var when = F.dateInput(t.ts) === todayK
+                ? F.time(t.ts)
+                : F.dateTime(t.ts);
+
+            return '<tr class="border-t border-line">' +
+                '<td class="whitespace-nowrap px-5 py-4 text-[13px] font-bold">' +
+                esc(when) + '</td>' +
+                '<td class="px-3 py-4">' +
+                '<span class="block text-[13px] font-bold">' +
+                esc(summary(t)) + '</span>' +
+                '<span class="block text-[12px] text-muted">' +
+                esc(t.id) + ' · ' +
+                (sale ? Math.round(t.units) + ' unit' : esc(t.category)) +
+                '</span></td>' +
+                '<td class="px-3 py-4 text-[13px] text-muted">' +
+                (sale ? 'Penjualan' : 'Pengeluaran') +
+                '</td>' +
+                '<td class="whitespace-nowrap px-5 py-4 text-right text-[13px] font-semibold">' +
+                (sale ? rp(t.revenue) : rp(-t.amount)) +
+                '</td></tr>';
+        }).join('') :
+            '<tr class="border-t border-line"><td colspan="4" class="px-5 py-8 text-center text-[13px] text-muted">Belum ada catatan. Mulai dari <a href="/catatan-transaksi" class="font-semibold text-brand-dark underline">Catat transaksi</a>.</td></tr>');
     }
 
-    // panel ini selalu hari ini, tidak ikut filter periode
     function today(txs) {
-      var r = M.range('today'), sum = M.summarize(r.from, r.to, txs), rp = M.fmt.rupiah;
-      setText('tDate', M.fmt.fullDate(Date.now()));
-      setText('tRev', rp(sum.revenue));
-      setText('tCap', sum.saleCount ? 'Dari ' + sum.saleCount + ' penjualan' : 'Belum ada penjualan hari ini');
-      setText('tOpex', rp(sum.opex)); setText('tGross', rp(sum.gross));
+        var r = range('today');
+        var sum = summarize(r.from, r.to, txs);
+        var rp = M.fmt.rupiah;
+
+        setText('tDate', M.fmt.fullDate(Date.now()));
+        setText('tRev', rp(sum.revenue));
+
+        setText(
+            'tCap',
+            sum.saleCount
+                ? 'Dari ' + sum.saleCount + ' penjualan'
+                : 'Belum ada penjualan hari ini'
+        );
+
+        setText('tOpex', rp(sum.opex));
+        setText('tGross', rp(sum.gross));
     }
 
     function render() {
-      var txs, products;
-      try { txs = M.txList(); products = M.get().products; } catch (e) { if (window.console) console.error(e); showError('Data tidak dapat dimuat. Muat ulang halaman.'); return; }
-      clearError();
-      var r = M.range(period), sum = M.summarize(r.from, r.to, txs);
-      Array.prototype.forEach.call(document.querySelectorAll('[data-p]'), function (b) {
-        var on = b.getAttribute('data-p') === period;
-        b.className = 'flex-1 whitespace-nowrap rounded-lg px-4 py-2 sm:flex-none' + (on ? ' bg-surface text-ink shadow-sm' : ' hover:text-ink');
-        b.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
-      guard('greeting', greeting);
-      guard('kpi', function () { kpis(r, sum); });
-      guard('chart', function () { chart(r, sum); });
-      guard('stok', function () { stock(products); });
-      guard('catatan', function () { recent(txs); });
-      guard('hari ini', function () { today(txs); });
+        var txs = window.DashboardData.transactions || [];
+        var products = window.DashboardData.products || [];
+
+        clearError();
+
+        var r = range(period);
+        var sum = summarize(r.from, r.to, txs);
+
+        Array.prototype.forEach.call(
+            document.querySelectorAll('[data-p]'),
+            function (b) {
+                var on = b.getAttribute('data-p') === period;
+
+                b.className = 'flex-1 whitespace-nowrap rounded-lg px-4 py-2 sm:flex-none' +
+                    (on ? ' bg-surface text-ink shadow-sm' : ' hover:text-ink');
+
+                b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            }
+        );
+
+        guard('greeting', greeting);
+        guard('kpi', function () { kpis(r, sum); });
+        guard('chart', function () { chart(r, sum); });
+        guard('stok', function () { stock(products); });
+        guard('catatan', function () { recent(txs); });
+        guard('hari ini', function () { today(txs); });
     }
 
-    if (!M || typeof M.txList !== 'function' || typeof M.summarize !== 'function') {
-      showError('Data tidak dapat dimuat: file mantou-store.js di public/ masih versi lama. Salin resources/js/mantou-store.js ke public/mantou-store.js, lalu muat ulang (Ctrl+F5).');
-      return;
-    }
-    Array.prototype.forEach.call(document.querySelectorAll('[data-p]'), function (b) { b.addEventListener('click', function () { period = b.getAttribute('data-p'); render(); }); });
-    M.onChange(render);
-    window.addEventListener('pageshow', function (e) { if (e.persisted) render(); });
-    document.addEventListener('visibilitychange', function () { if (!document.hidden) render(); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-p]'), function (b) {
+        b.addEventListener('click', function () {
+            period = b.getAttribute('data-p');
+            render();
+        });
+    });
+
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted) render();
+    });
+
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) render();
+    });
+
     render();
   })();
 </script>

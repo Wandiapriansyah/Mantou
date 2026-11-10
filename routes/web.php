@@ -42,7 +42,6 @@ Route::middleware('auth')->group(function () {
             return view('admin.analisis-stok-penjualan');
         });
 
-        // Catatan transaksi
         Route::get('/catatan-transaksi', [TransactionController::class, 'catatan'])->name('catatan-transaksi');
         Route::post('/catatan-transaksi/penjualan', [TransactionController::class, 'storeSale'])->name('catatan-transaksi.sale.store');
         Route::post('/catatan-transaksi/pengeluaran', [TransactionController::class, 'storeExpense'])->name('catatan-transaksi.expense.store');
