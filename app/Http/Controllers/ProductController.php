@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\StockMovement;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -33,6 +34,53 @@ class ProductController extends Controller
         })->values();
 
         return view('admin.analisis-harga', compact('analysisProducts'));
+    }
+
+    public function analisisStokPenjualan()
+    {
+        $products = Product::with('category')
+            ->orderBy('product_name')
+            ->get();
+
+        $transactions = Transaction::with('transactionDetails')
+            ->latest('transaction_date')
+            ->get();
+
+        $analysisProducts = $products->map(function ($product) {
+            return [
+                'id' => $product->id,
+                'name' => $product->product_name,
+                'barcode' => $product->barcode,
+                'unit' => $product->unit,
+                'category' => $product->category->category_name ?? '',
+                'cost' => (float) $product->purchase_price,
+                'price' => (float) $product->selling_price,
+                'stock' => (int) $product->stock,
+                'min' => (int) $product->minimum_stock,
+                'promo' => null,
+            ];
+        })->values();
+
+        $analysisTransactions = $transactions->map(function ($transaction) {
+            $items = $transaction->transactionDetails->map(function ($detail) {
+                return [
+                    'pid' => $detail->product_id,
+                    'qty' => (int) $detail->purchase_quantity,
+                ];
+            })->values();
+
+            return [
+                'type' => 'sale',
+                'ts' => $transaction->transaction_date->timestamp * 1000,
+                'units' => $items->sum('qty'),
+                'items' => $items,
+            ];
+        })->values();
+
+        return view('admin.analisis-stok-penjualan', compact(
+            'analysisProducts',
+            'analysisTransactions'
+        ));
     }
     
     public function index()

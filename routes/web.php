@@ -33,18 +33,12 @@ Route::middleware('auth')->group(function () {
             return view('admin.cek-harga');
         });
         Route::post('/cek-harga/search', [ProductController::class, 'searchForPriceCheck'])->name('cek-harga.search');
-
         Route::get('/analisis-harga', [ProductController::class, 'analisisHarga'])->name('analisis-harga');
-
-        Route::get('analisis-stok-penjualan', function () {
-            return view('admin.analisis-stok-penjualan');
-        });
-
+        Route::get('/analisis-stok-penjualan', [ProductController::class, 'analisisStokPenjualan'])->name('analisis-stok-penjualan');
         Route::get('/catatan-transaksi', [TransactionController::class, 'catatan'])->name('catatan-transaksi');
         Route::post('/catatan-transaksi/penjualan', [TransactionController::class, 'storeSale'])->name('catatan-transaksi.sale.store');
         Route::post('/catatan-transaksi/pengeluaran', [TransactionController::class, 'storeExpense'])->name('catatan-transaksi.expense.store');
         Route::delete('/catatan-transaksi/{type}/{id}', [TransactionController::class, 'void'])->name('catatan-transaksi.void');
-
         Route::get('/laporan-keuangan', [TransactionController::class, 'laporanKeuangan'])->name('laporan-keuangan');
 
         Route::get('rekomendasi-diskon', function () {
