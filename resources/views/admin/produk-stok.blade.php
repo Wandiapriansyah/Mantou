@@ -630,13 +630,19 @@
           );
       }
 
+      var dbCategories = @json($categories->pluck('category_name')->values());
       function productForm(p, pre) {
           var isNew = !p;
           p = p || pre || {};
-          var cats = [];
-          getData().products.forEach(function (x) {
-              if (cats.indexOf(x.category) < 0) cats.push(x.category);
+          var unitOptions = [];
+          getData().products.forEach(function (product) {
+            if (product.unit && unitOptions.indexOf(product.unit) === -1) {
+                unitOptions.push(product.unit);
+            }
           });
+          var categoryOptions = dbCategories.map(function (category) {
+              return '<option value="' + esc(category) + '">';
+          }).join("");
           open(
               isNew ? "Tambah produk" : "Ubah produk",
               isNew
@@ -654,25 +660,23 @@
                   esc(p.barcode || "") +
                   '" placeholder="Ketik, pindai kamera, atau alat scan" class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2.5 text-[13px] outline-none focus:border-brand"><button type="button" id="scanBtn" class="shrink-0 rounded-lg border border-line px-3.5 text-[13px] font-bold text-brand-dark hover:border-brand">Pindai</button></div><p id="scanMsg" class="mt-2 hidden text-[12px] text-muted"></p><div id="scanBox" class="relative mt-3 hidden aspect-video overflow-hidden rounded-xl bg-ink"><video id="scanVideo" class="size-full object-cover" playsinline muted autoplay></video><span class="pointer-events-none absolute inset-x-6 top-1/2 h-0.5 bg-brand"></span></div></div>' +
                   '<div class="grid grid-cols-2 gap-4">' +
-                  field(
-                      "fUnit",
-                      "Satuan",
-                      p.unit || "",
-                      'type="text" placeholder="bungkus, botol…"',
-                  ) +
-                  '<label class="' +
-                  LBL +
-                  '">Kategori<input id="fCatIn" list="catList" value="' +
-                  esc(p.category || "") +
-                  '" class="' +
-                  INP +
-                  '"><datalist id="catList">' +
-                  cats
-                      .map(function (c) {
-                          return '<option value="' + esc(c) + '">';
-                      })
-                      .join("") +
-                  "</datalist></label></div>" +
+                  '<label class="' + LBL + '">Satuan<input id="fUnit" list="unitList" value="' +
+                    esc(p.unit || "") +
+                    '" type="text" placeholder="Pilih atau ketik satuan baru" class="' + INP + '">' +
+                    '<datalist id="unitList">' +
+                    unitOptions.map(function (unit) {
+                        return '<option value="' + esc(unit) + '">';
+                    }).join("") +
+                    '</datalist></label>' +
+                  '<div>' +
+                    '<label class="' + LBL + '">Kategori<input id="fCatIn" list="categoryList" value="' +
+                    esc(p.category || "") +
+                    '" class="' + INP + '" placeholder="Pilih atau ketik kategori baru">' +
+                    '<datalist id="categoryList">' +
+                    categoryOptions +
+                    '</datalist></label>' +
+                    '<button type="button" id="addCategoryBtn" class="mt-2 text-sm font-semibold text-primary hover:underline">+ Tambah kategori baru</button>' +
+                    '</div></div>' +
                   '<div class="grid grid-cols-2 gap-4">' +
                   field(
                       "fCost",
@@ -788,6 +792,106 @@
                 }
             },
           );
+            var addCategoryBtn = $("addCategoryBtn");
+
+            if (addCategoryBtn) {
+                addCategoryBtn.onclick = function () {
+                    var categoryModal = document.createElement("div");
+
+                    categoryModal.className =
+                        "fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4";
+
+                    categoryModal.innerHTML =
+                        '<div class="w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl">' +
+                            '<h3 class="text-lg font-bold text-ink">Tambah kategori baru</h3>' +
+                            '<p class="mt-1 text-sm text-muted">Masukkan nama kategori yang ingin ditambahkan.</p>' +
+                            '<label class="mt-4 block text-sm font-semibold text-ink">Nama kategori' +
+                                '<input id="newCategoryName" type="text" maxlength="100" class="mt-2 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none focus:border-brand" placeholder="Contoh: Makanan">' +
+                            '</label>' +
+                            '<p id="newCategoryError" class="mt-2 hidden text-xs text-danger"></p>' +
+                            '<div class="mt-5 flex justify-end gap-2">' +
+                                '<button type="button" id="cancelCategory" class="rounded-lg border border-line px-4 py-2 text-sm font-semibold">Batal</button>' +
+                                '<button type="button" id="saveCategory" class="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-surface">Simpan</button>' +
+                            '</div>' +
+                        '</div>';
+
+                    document.body.appendChild(categoryModal);
+
+                    $("newCategoryName").focus();
+
+                    $("cancelCategory").onclick = function () {
+                        categoryModal.remove();
+                    };
+
+                    $("saveCategory").onclick = async function () {
+                        var name = $("newCategoryName").value.trim();
+                        var errorEl = $("newCategoryError");
+                        var saveBtn = $("saveCategory");
+
+                        errorEl.classList.add("hidden");
+
+                        if (!name) {
+                            errorEl.textContent = "Nama kategori wajib diisi.";
+                            errorEl.classList.remove("hidden");
+                            return;
+                        }
+
+                        try {
+                            saveBtn.disabled = true;
+                            saveBtn.textContent = "Menyimpan...";
+
+                            var response = await fetch(
+                                @json(route('categories.quick-store', [], false)),
+                                {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "Accept": "application/json",
+                                        "X-CSRF-TOKEN": @json(csrf_token()),
+                                    },
+                                    body: JSON.stringify({
+                                        category_name: name,
+                                    }),
+                                }
+                            );
+
+                            var result = await response.json();
+
+                            if (!response.ok) {
+                                var message = result.message || "Kategori gagal ditambahkan.";
+
+                                if (result.errors) {
+                                    message = Object.values(result.errors).flat().join(" ");
+                                }
+
+                                errorEl.textContent = message;
+                                errorEl.classList.remove("hidden");
+                                saveBtn.disabled = false;
+                                saveBtn.textContent = "Simpan";
+                                return;
+                            }
+
+                            dbCategories.push(result.category.name);
+
+                            var option = document.createElement("option");
+                            option.value = result.category.name;
+
+                            $("categoryList").appendChild(option);
+                            $("fCatIn").value = result.category.name;
+
+                            categoryModal.remove();
+
+                            toast("Kategori berhasil ditambahkan.");
+
+                        } catch (error) {
+                            errorEl.textContent = "Tidak dapat terhubung ke server.";
+                            errorEl.classList.remove("hidden");
+                            saveBtn.disabled = false;
+                            saveBtn.textContent = "Simpan";
+                        }
+                    };
+                };
+            }
           $("scanBtn").onclick = function () {
               scanning ? stopScan() : startScan();
           };

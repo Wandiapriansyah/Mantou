@@ -29,15 +29,35 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_kategori' => 'required|string|max:100',
+        $data = $request->validate([
+            'category_name' => 'required|string|max:100|unique:categories,category_name',
         ]);
 
         Category::create([
-            'nama_kategori' => $request->nama_kategori,
+            'category_name' => $data['category_name'],
         ]);
 
-        return redirect()->route('categories.index')->with('success', 'Kategori berhasil ditambahkan.');
+        return redirect()->route('categories.index')
+            ->with('success', 'Kategori berhasil ditambahkan.');
+    }
+
+    public function quickStore(Request $request)
+    {
+        $data = $request->validate([
+            'category_name' => 'required|string|max:100|unique:categories,category_name',
+        ]);
+
+        $category = Category::create([
+            'category_name' => $data['category_name'],
+        ]);
+
+        return response()->json([
+            'message' => 'Kategori berhasil ditambahkan.',
+            'category' => [
+                'id' => $category->id,
+                'name' => $category->category_name,
+            ],
+        ], 201);
     }
 
     /**
@@ -61,15 +81,16 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
-        $request->validate([
-            'nama_kategori' => 'required|string|max:100',
+        $data = $request->validate([
+            'category_name' => 'required|string|max:100|unique:categories,category_name,' . $category->id,
         ]);
 
         $category->update([
-            'nama_kategori' => $request->nama_kategori,
+            'category_name' => $data['category_name'],
         ]);
 
-        return redirect()->route('categories.index')->with('success', 'Kategori berhasil diperbarui.');
+        return redirect()->route('categories.index')
+            ->with('success', 'Kategori berhasil diperbarui.');
     }
 
     /**

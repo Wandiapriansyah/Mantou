@@ -28,10 +28,11 @@ Route::middleware('auth')->group(function () {
         Route::resource('categories', CategoryController::class);
         Route::resource('discounts', DiscountController::class);
         Route::resource('transaksi', TransactionController::class)->only(['index', 'show', 'destroy']);
-
+        
         Route::get('cek-harga', function () {
             return view('admin.cek-harga');
         });
+        Route::post('/categories/quick', [CategoryController::class, 'quickStore'])->name('categories.quick-store');
         Route::post('/cek-harga/search', [ProductController::class, 'searchForPriceCheck'])->name('cek-harga.search');
         Route::get('/analisis-harga', [ProductController::class, 'analisisHarga'])->name('analisis-harga');
         Route::get('/analisis-stok-penjualan', [ProductController::class, 'analisisStokPenjualan'])->name('analisis-stok-penjualan');
